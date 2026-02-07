@@ -1,3 +1,15 @@
+# Etape 6 - Themes (White, Light, Dark)
+
+L'application supporte 3 themes via `next-themes` et des variables CSS en oklch.
+
+---
+
+## 1. globals.css complet
+
+Remplacer le contenu de `app/globals.css` par :
+
+```css
+/* app/globals.css */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -46,6 +58,10 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
+/* ============================================================
+   THEME WHITE (defaut / :root)
+   Theme blanc pur, neutre
+   ============================================================ */
 :root,
 .white {
   --radius: 0.65rem;
@@ -82,13 +98,15 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/* ============================================================
+   THEME LIGHT
+   Theme clair avec une teinte chaude subtile
+   ============================================================ */
 .light {
   --radius: 0.65rem;
-  --background: oklch(0.98 0.008 75); /* Plus neutre, moins beige */
+  --background: oklch(0.98 0.008 75);
   --foreground: oklch(0.18 0.008 75);
-  --card: oklch(
-    0.95 0.015 75
-  ); /* Contraste subtil mais visible avec le background */
+  --card: oklch(0.95 0.015 75);
   --card-foreground: oklch(0.18 0.008 75);
   --popover: oklch(0.96 0.012 75);
   --popover-foreground: oklch(0.18 0.008 75);
@@ -101,15 +119,15 @@
   --accent: oklch(0.91 0.022 75);
   --accent-foreground: oklch(0.25 0.01 75);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.87 0.012 75); /* Border plus subtile */
+  --border: oklch(0.87 0.012 75);
   --input: oklch(0.87 0.012 75);
   --ring: oklch(0.55 0.15 150);
   --chart-1: oklch(0.55 0.15 150);
-  --chart-2: oklch(0.5 0.14 160);
+  --chart-2: oklch(0.50 0.14 160);
   --chart-3: oklch(0.45 0.13 170);
-  --chart-4: oklch(0.4 0.12 180);
+  --chart-4: oklch(0.40 0.12 180);
   --chart-5: oklch(0.35 0.11 190);
-  --sidebar: oklch(0.94 0.018 75); /* RÃ©duit la saturation */
+  --sidebar: oklch(0.94 0.018 75);
   --sidebar-foreground: oklch(0.18 0.008 75);
   --sidebar-primary: oklch(0.55 0.15 150);
   --sidebar-primary-foreground: oklch(0.98 0.01 150);
@@ -119,6 +137,10 @@
   --sidebar-ring: oklch(0.55 0.15 150);
 }
 
+/* ============================================================
+   THEME DARK
+   Theme sombre
+   ============================================================ */
 .dark {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
@@ -161,3 +183,127 @@
     @apply bg-background text-foreground;
   }
 }
+```
+
+### Descriptions des themes :
+- **White** (`:root`, `.white`) : Fond blanc pur, couleur primaire verte, style minimal
+- **Light** (`.light`) : Fond legerement chaud (teinte beige subtile), cartes avec contraste visible, primaire vert
+- **Dark** (`.dark`) : Fond sombre, texte clair, adapte pour usage nocturne
+
+---
+
+## 2. Theme Provider
+
+Creer `components/theme-provider.tsx` :
+
+```typescript
+// components/theme-provider.tsx
+"use client";
+
+import * as React from "react";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+
+export function ThemeProvider({
+  children,
+  ...props
+}: React.ComponentProps<typeof NextThemesProvider>) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+}
+```
+
+---
+
+## 3. Integration dans le Root Layout
+
+Creer `app/layout.tsx` :
+
+```typescript
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
+import { Toaster } from "@/components/ui/toaster";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Mon Application",
+  description: "Description de mon application",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="fr" suppressHydrationWarning>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>{children}</Providers>
+          <Toaster />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Points cles :
+- `attribute="class"` : les themes sont appliques via une classe CSS sur `<html>`
+- `defaultTheme="light"` : theme par defaut
+- `enableSystem` : permet de detecter le theme systeme
+- `suppressHydrationWarning` : evite les warnings d'hydratation lies au theme
+- `<Toaster />` : place dans le layout pour etre disponible partout
+
+---
+
+## 4. Comment le theme est change
+
+Le theme est change dans le composant `NavUser` (menu bas de la sidebar) via un radio group :
+
+```typescript
+// Extrait de nav-user.tsx (sera cree a l'etape 7)
+const { theme, setTheme } = useTheme();
+
+// Dans le dropdown menu :
+<DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+  <DropdownMenuRadioItem value="white">
+    <Sun className="h-4 w-4 mr-2" />
+    White
+  </DropdownMenuRadioItem>
+  <DropdownMenuRadioItem value="light">
+    <Circle className="h-4 w-4 mr-2" />
+    Light
+  </DropdownMenuRadioItem>
+  <DropdownMenuRadioItem value="dark">
+    <Moon className="h-4 w-4 mr-2" />
+    Dark
+  </DropdownMenuRadioItem>
+</DropdownMenuRadioGroup>
+```
+
+Le theme est persiste dans un cookie par `next-themes` et s'applique automatiquement au rechargement.
+
+---
+
+## Prochaine etape
+
+-> [07 - Sidebar](./07-SIDEBAR.md)
