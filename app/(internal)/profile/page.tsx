@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { AppSidebar } from "@/components/app-sidebar";
+import { useDashboardScrollRef } from "@/components/dashboard-scroll-area";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,11 +14,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -41,9 +37,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Link from "next/link";
 import { toast } from "sonner";
-import { useScroll } from "@/hooks/use-scroll";
+import { useScrollContainer } from "@/hooks/use-scroll";
 import { BackgroundSelector } from "@/components/background-selector";
 import type { Gradient } from "@/lib/gradient-generator";
 import {
@@ -96,7 +91,8 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
 export default function UserProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const hasScrolled = useScroll();
+  const scrollRef = useDashboardScrollRef();
+  const hasScrolled = useScrollContainer(scrollRef);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showFullBio, setShowFullBio] = useState(false);
@@ -215,24 +211,21 @@ export default function UserProfilePage() {
 
   if (status === "loading" || isLoading) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2">
-            <div className="flex items-center gap-2 px-4">
-              <Skeleton className="h-6 w-6" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-32 rounded-xl" />
-              ))}
-            </div>
+      <>
+        <header className="flex h-16 shrink-0 items-center gap-2">
+          <div className="flex items-center gap-2 px-4">
+            <Skeleton className="h-6 w-6" />
+            <Skeleton className="h-4 w-32" />
           </div>
-        </SidebarInset>
-      </SidebarProvider>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -315,14 +308,12 @@ export default function UserProfilePage() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header
-          className={`sticky top-0 z-50 flex h-16 shrink-0 items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 ${
-            hasScrolled ? "border-b" : ""
-          }`}
-        >
+    <>
+      <header
+        className={`sticky top-0 z-10 flex h-16 shrink-0 items-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 ${
+          hasScrolled ? "border-b" : ""
+        }`}
+      >
           <div className="flex justify-between items-center w-full px-4">
             <div className="flex items-center gap-2">
               <SidebarTrigger className="-ml-1" />
@@ -479,7 +470,7 @@ export default function UserProfilePage() {
                           )}
                         </div>
                       )}
-                      <div className="mt-2">
+                      <div className="mt-2 pb-6">
                         <p className="text-xs text-muted-foreground">
                           Membre depuis{" "}
                           {new Date(userData.createdAt).toLocaleDateString(
@@ -886,7 +877,6 @@ export default function UserProfilePage() {
             </div>
           )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

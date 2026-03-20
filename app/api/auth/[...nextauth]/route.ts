@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
-import { users } from "@/lib/schema";
+import { users, workspaces } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -21,7 +21,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const user = await db
-          .select()
+          .select({
+            id: users.id,
+            email: users.email,
+            name: users.name,
+            image: users.image,
+            password: users.password,
+            accountType: users.accountType,
+            workspaceId: users.workspaceId,
+          })
           .from(users)
           .where(eq(users.email, credentials.email as string))
           .limit(1);
@@ -32,12 +40,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const foundUser = user[0];
 
-        // Verifier si l'utilisateur a un mot de passe (pas OAuth)
         if (!foundUser.password) {
           return null;
         }
 
-        // Verifier le mot de passe
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
           foundUser.password
@@ -47,12 +53,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Récupérer le nom du workspace si l'utilisateur en a un
+        let workspaceName: string | null = null;
+        if (foundUser.workspaceId) {
+          const [ws] = await db
+            .select({ name: workspaces.name })
+            .from(workspaces)
+            .where(eq(workspaces.id, foundUser.workspaceId))
+            .limit(1);
+          workspaceName = ws?.name ?? null;
+        }
+
         return {
           id: foundUser.id.toString(),
           email: foundUser.email,
           name: foundUser.name || undefined,
           image: foundUser.image || undefined,
           accountType: foundUser.accountType as "user" | "business",
+          workspaceId: foundUser.workspaceId ?? null,
+          workspaceName,
         };
       },
     }),
@@ -68,6 +87,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = user.name;
         token.picture = user.image;
         token.accountType = user.accountType;
+        token.workspaceId = user.workspaceId ?? null;
+        token.workspaceName = user.workspaceName ?? null;
       }
       return token;
     },
@@ -78,6 +99,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name as string;
         session.user.image = token.picture as string | undefined;
         session.user.accountType = token.accountType;
+        session.user.workspaceId = (token.workspaceId as number | null) ?? null;
+        session.user.workspaceName = (token.workspaceName as string | null) ?? null;
       }
       return session;
     },

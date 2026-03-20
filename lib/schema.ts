@@ -5,8 +5,41 @@ import {
   timestamp,
   integer,
   jsonb,
-  boolean,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+
+// ============================================================
+// TABLE WORKSPACES — Espace partagé pour les comptes entreprise
+// ============================================================
+export const workspaces = pgTable("workspaces", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(), // identifiant URL-friendly, ex: "acme-corp"
+  passwordHash: text("password_hash").notNull(), // bcrypt du mot de passe de workspace
+  ownerId: integer("owner_id").notNull(), // userId du créateur — FK circulaire gérée via SQL
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// TABLE WORKSPACE_MEMBERS — Membres d'un workspace
+// ============================================================
+export const workspaceMembers = pgTable(
+  "workspace_members",
+  {
+    id: serial("id").primaryKey(),
+    workspaceId: integer("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: integer("user_id").notNull(), // FK vers users — circulaire, pas de .references() ici
+    role: text("role")
+      .$type<"owner" | "admin" | "member">()
+      .notNull()
+      .default("member"),
+    joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("workspace_members_unique").on(table.workspaceId, table.userId)]
+);
 
 // ============================================================
 // TABLE USERS - Etendue pour NextAuth + profil
@@ -19,6 +52,15 @@ export const users = pgTable("users", {
   image: text("image"),
   password: text("password"), // Hashe avec bcrypt, nullable pour OAuth futur
   accountType: text("account_type").notNull().default("user"), // "user" | "business"
+
+  // Rôle pour le RBAC (contrôle d'accès par route)
+  // "admin"   → accès complet (internal + portal)
+  // "user"    → accès internal uniquement (équipe interne)
+  // "partner" → accès portal uniquement (partenaires / apporteurs)
+  role: text("role").$type<"admin" | "user" | "partner">().notNull().default("user"),
+
+  // Workspace (comptes entreprise) — null pour les comptes personnels
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
 
   // Champs de profil utilisateur
   bio: text("bio"),

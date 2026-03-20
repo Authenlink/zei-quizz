@@ -1,36 +1,180 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Template Next.js — Applications internes & portails B2B
 
-## Getting Started
+Base opinionated pour construire rapidement des **apps internes** (back-office, dashboards, ops) et des **portails partenaires** (apporteurs d'affaires, utilisateurs externes).
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+| Couche | Technologie |
+|--------|-------------|
+| Framework | Next.js (App Router) |
+| Auth | NextAuth v5 (credentials + JWT) |
+| Base de données | Drizzle ORM + Neon (Postgres serverless) |
+| UI | shadcn/ui + Tailwind CSS v4 |
+| Tables | TanStack Table |
+| Graphiques | Recharts |
+| Toasts | Sonner |
+| Thème | next-themes |
+
+---
+
+## Architecture — Qui voit quoi
+
+```mermaid
+graph TD
+    subgraph Public
+        A["/login"] 
+        B["/signup"]
+        C["/"]
+    end
+
+    subgraph "(internal) — Shell back-office"
+        D["/dashboard"] 
+        E["/profile"]
+        F["...autres routes internes"]
+    end
+
+    subgraph "(portal) — Shell partenaire"
+        G["/portal"]
+        H["/portal/leads"]
+        I["/portal/leads/new"]
+        J["/portal/profile"]
+    end
+
+    K[Utilisateur] --> A
+    A -->|role=admin ou user| D
+    A -->|role=partner| G
+
+    L[Admin] -->|accès complet| D
+    L -->|accès complet| G
+
+    M[User interne] --> D
+    N[Partenaire] --> G
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Rôles
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Rôle | Shell accessible | Description |
+|------|-----------------|-------------|
+| `admin` | internal + portal | Accès complet |
+| `user` | internal | Équipe interne, ops |
+| `partner` | portal | Partenaires, apporteurs d'affaires |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Structure du projet
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/
+  (internal)/           # Shell A — back-office (sidebar dense)
+    layout.tsx
+    dashboard/page.tsx  # /dashboard
+    profile/page.tsx    # /profile
+  (portal)/             # Shell B — espace partenaire (sidebar simplifiée)
+    layout.tsx
+    portal/
+      page.tsx          # /portal
+      leads/page.tsx    # /portal/leads
+  (auth)/               # Login, signup (layout minimal)
+    login/
+    signup/
+  api/
+    auth/
+    user/
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+components/
+  shell/
+    portal-sidebar.tsx  # Sidebar du shell portail
+  ui/                   # shadcn primitives
+  app-sidebar.tsx       # Sidebar du shell internal
+  nav-main.tsx
+  nav-user.tsx
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+lib/
+  schema.ts             # Tables Drizzle (users avec role, accounts, sessions)
+  authz.ts              # Politiques canAccessInternal / canAccessPortal / isAdmin
+  auth.ts
+  db.ts
 
-## Deploy on Vercel
+middleware.ts           # Redirections par rôle (commentées par défaut)
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Démarrer un nouveau projet client
+
+```bash
+# 1. Cloner la template
+git clone <repo> mon-projet && cd mon-projet
+
+# 2. Installer les dépendances
+pnpm install
+
+# 3. Configurer l'environnement
+cp .env.example .env
+# → remplir DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL
+
+# 4. Pousser le schéma en base
+pnpm db:push
+
+# 5. Lancer en développement
+pnpm dev
+```
+
+---
+
+## Personnaliser les shells
+
+### Shell interne (`components/app-sidebar.tsx`)
+
+Modifier le tableau `navItems` pour adapter la navigation back-office.
+
+### Shell portail (`components/shell/portal-sidebar.tsx`)
+
+Modifier le tableau `portalNavItems` pour adapter la navigation partenaire.
+
+---
+
+## Activer le RBAC
+
+1. **Ajouter `role` au token JWT** dans `app/api/auth/[...nextauth]/route.ts` :
+
+```ts
+callbacks: {
+  jwt({ token, user }) {
+    if (user) token.role = (user as { role?: string }).role;
+    return token;
+  },
+  session({ session, token }) {
+    session.user.role = token.role as string;
+    return session;
+  },
+}
+```
+
+2. **Décommenter le bloc RBAC** dans `middleware.ts`.
+
+3. Utiliser `canAccessInternal()` / `canAccessPortal()` de `lib/authz.ts` dans les routes API.
+
+---
+
+## Si le projet est 100 % interne (pas de portail)
+
+Utiliser uniquement le groupe `(internal)` — ignorer `(portal)` et `components/shell/portal-sidebar.tsx`.
+
+---
+
+## Déploiement (Vercel + Neon)
+
+- Créer un projet Vercel, lier le repo.
+- Créer une base Neon, copier `DATABASE_URL`.
+- Renseigner les variables d'environnement dans Vercel :
+  - `DATABASE_URL`
+  - `NEXTAUTH_SECRET`
+  - `NEXTAUTH_URL` (URL de production)
+- Lancer `pnpm db:push` depuis la CI ou manuellement.
+
+---
+
+_Template — mars 2026_

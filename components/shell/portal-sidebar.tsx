@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, PlusCircle, ClipboardList, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { NavMain } from "@/components/nav-main";
@@ -22,69 +21,50 @@ import {
 } from "@/components/ui/sidebar";
 
 // ============================================================
-// ITEMS DE NAVIGATION - A personnaliser selon ton projet
+// ITEMS DE NAVIGATION PORTAIL — à personnaliser selon ton projet
+// L'espace portail est destiné aux utilisateurs "externes"
+// (partenaires, apporteurs d'affaires, etc.)
 // ============================================================
-const navItems = [
+const portalNavItems = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
+    title: "Accueil",
+    url: "/portal",
     icon: LayoutDashboard,
   },
   {
+    title: "Soumettre un lead",
+    url: "/portal/leads/new",
+    icon: PlusCircle,
+  },
+  {
+    title: "Mes soumissions",
+    url: "/portal/leads",
+    icon: ClipboardList,
+  },
+  {
     title: "Mon compte",
-    url: "/profile",
+    url: "/portal/profile",
     icon: User,
   },
-  // Ajouter d'autres items ici, exemple avec sous-menu :
+  // Ajouter d'autres items ici, exemple :
   // {
-  //   title: "Parametres",
-  //   url: "/settings",
-  //   icon: Settings,
-  //   items: [
-  //     { title: "General", url: "/settings/general" },
-  //     { title: "Securite", url: "/settings/security" },
-  //   ],
+  //   title: "Ressources",
+  //   url: "/portal/resources",
+  //   icon: BookOpen,
   // },
 ];
 
-export function AppSidebar({
+export function PortalSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession();
-  const [backgroundGradient, setBackgroundGradient] = useState<{
-    color1: string;
-    color2: string;
-    css: string;
-  } | null>(null);
 
   const user = {
-    name: session?.user?.name || "User",
+    name: session?.user?.name || "Partenaire",
     email: session?.user?.email || "",
     avatar: session?.user?.image || "",
   };
 
-  // Charger le gradient de l'utilisateur pour l'avatar
-  useEffect(() => {
-    const loadUserGradient = async () => {
-      try {
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.backgroundType === "gradient" && data.backgroundGradient) {
-            setBackgroundGradient(data.backgroundGradient);
-          }
-        }
-      } catch (error) {
-        console.error("Erreur lors du chargement du gradient:", error);
-      }
-    };
-
-    if (session?.user) {
-      loadUserGradient();
-    }
-  }, [session]);
-
-  // Skeleton pendant le chargement de la session
   if (status === "loading") {
     return (
       <Sidebar {...props}>
@@ -99,7 +79,7 @@ export function AppSidebar({
         </SidebarHeader>
         <SidebarContent>
           <div className="space-y-2 p-2">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>
@@ -119,16 +99,16 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      {/* Header : Logo + Nom de l'app */}
+      {/* Header : Logo + Nom de l'espace partenaire */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href="/portal">
                 <div className="flex aspect-square size-8 items-center justify-center">
                   <Image
                     src="/logo.png"
-                    alt="Mon App"
+                    alt="Espace Partenaire"
                     width={36}
                     height={36}
                     className="rounded-md"
@@ -137,7 +117,7 @@ export function AppSidebar({
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Mon Application</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    Dashboard
+                    Espace Partenaire
                   </span>
                 </div>
               </Link>
@@ -146,20 +126,16 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      {/* Contenu : Navigation */}
+      {/* Contenu : Navigation portail */}
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={portalNavItems} />
       </SidebarContent>
 
       {/* Footer : Menu utilisateur */}
       <SidebarFooter>
-        <NavUser
-          user={user}
-          backgroundGradient={backgroundGradient}
-        />
+        <NavUser user={user} />
       </SidebarFooter>
 
-      {/* Rail : handle pour collapse/expand */}
       <SidebarRail />
     </Sidebar>
   );

@@ -9,6 +9,8 @@ declare module "next-auth" {
       name?: string | null;
       image?: string | null;
       accountType: "user" | "business";
+      workspaceId: number | null;
+      workspaceName: string | null;
     };
   }
 
@@ -18,6 +20,8 @@ declare module "next-auth" {
     name?: string | null;
     image?: string | null;
     accountType: "user" | "business";
+    workspaceId?: number | null;
+    workspaceName?: string | null;
   }
 }
 
@@ -28,5 +32,7 @@ declare module "next-auth/jwt" {
     name?: string | null;
     picture?: string | null;
     accountType: "user" | "business";
+    workspaceId?: number | null;
+    workspaceName?: string | null;
   }
 }
