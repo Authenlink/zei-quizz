@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
+import { getAccountContextLabel } from "@/lib/account-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sidebar,
@@ -62,6 +63,10 @@ export function AppSidebar({
     email: session?.user?.email || "",
     avatar: session?.user?.image || "",
   };
+
+  const accountContext = session?.user
+    ? getAccountContextLabel(session.user)
+    : "";
 
   // Charger le gradient de l'utilisateur pour l'avatar
   useEffect(() => {
@@ -137,7 +142,7 @@ export function AppSidebar({
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Mon Application</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    Dashboard
+                    {accountContext || "Dashboard"}
                   </span>
                 </div>
               </Link>
@@ -155,6 +160,7 @@ export function AppSidebar({
       <SidebarFooter>
         <NavUser
           user={user}
+          contextSubtitle={accountContext || undefined}
           backgroundGradient={backgroundGradient}
         />
       </SidebarFooter>

@@ -1,0 +1,27 @@
+---
+description: Comptes user vs entreprise, workspaces et session NextAuth
+globs:
+  - lib/schema.ts
+  - lib/account-context.ts
+  - types/next-auth.d.ts
+  - app/api/auth/**/*.ts
+  - app/login/page.tsx
+  - app/signup/page.tsx
+  - app/(internal)/dashboard/page.tsx
+  - app/(portal)/portal/page.tsx
+  - components/login-form.tsx
+  - components/signup-form.tsx
+  - components/app-sidebar.tsx
+  - components/shell/portal-sidebar.tsx
+  - components/nav-user.tsx
+alwaysApply: false
+---
+
+# Comptes personnel vs entreprise
+
+- **`accountType`** sur `users` : `"user"` (personnel) ou `"business"` (entreprise). Ne pas confondre avec **`role`** (`admin` | `user` | `partner`) qui contrôle l’accès aux shells internal / portal.
+- Les comptes **entreprise** ont un **`workspaceId`** ; le nom affiché vient de la session : **`workspaceName`** (rempli à la connexion dans `app/api/auth/[...nextauth]/route.ts`).
+- Libellé UI réutilisable : **`getAccountContextLabel()`** dans `lib/account-context.ts` (nom du workspace, ou « Espace entreprise », ou « Compte personnel »).
+- **Login** : `components/login-form.tsx` — `ToggleGroup` shadcn pour choisir le contexte d’intention (personnel / entreprise) ; n’altère pas l’auth ; toast si l’intention ne correspond pas au `accountType` réel.
+- **Inscription** : `components/signup-form.tsx` + `app/api/auth/register/route.ts` — création ou rattachement à un workspace pour `business`.
+- Sidebars et **`NavUser`** : prop optionnelle **`contextSubtitle`** pour afficher le contexte (souvent le workspace).

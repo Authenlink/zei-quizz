@@ -24,6 +24,7 @@ import { SelectItem } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useScrollContainer } from "@/hooks/use-scroll";
+import { getAccountContextLabel } from "@/lib/account-context";
 
 const demoComboboxOptions: ComboboxOption[] = [
   { value: "a", label: "Option Alpha" },
@@ -120,6 +121,10 @@ export default function DashboardPage() {
             Bienvenue, {session.user.name} !
           </h1>
           <p className="text-muted-foreground">
+            <span className="text-foreground/80">
+              {getAccountContextLabel(session.user)}
+            </span>
+            {" — "}
             Voici votre tableau de bord.
           </p>
         </div>

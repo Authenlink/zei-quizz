@@ -1,0 +1,16 @@
+---
+description: Composants UI via shadcn/ui uniquement (CLI + cohérence)
+alwaysApply: true
+---
+
+# UI — shadcn/ui
+
+- **Nouveaux composants UI** : utiliser le CLI shadcn, pas de primitives maison qui doublonnent Radix/Tailwind déjà fournis par la template.
+
+  ```bash
+  pnpm dlx shadcn@latest add <nom-du-composant>
+  ```
+
+- Les blocs vivent sous `components/ui/` ; réutiliser `@/components/ui/*` dans les pages et features.
+- Pour découvrir ou installer depuis l’IA, le projet inclut le **MCP shadcn** (`.cursor/mcp.json`) : activer le serveur `shadcn` dans les réglages MCP de Cursor.
+- Préférer la composition de composants shadcn existants (ex. `ToggleGroup`, `Card`, `Field`) plutôt que des boutons/inputs stylés à la main.

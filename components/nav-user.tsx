@@ -42,12 +42,15 @@ function getInitials(name: string) {
 export function NavUser({
   user,
   backgroundGradient,
+  contextSubtitle,
 }: {
   user: {
     name: string;
     email: string;
     avatar: string;
   };
+  /** Ligne sous le nom : ex. nom du workspace ou « Compte personnel » */
+  contextSubtitle?: string | null;
   backgroundGradient?: {
     color1: string;
     color2: string;
@@ -87,6 +90,11 @@ export function NavUser({
                 <span className="truncate font-medium">
                   {user.name || "User"}
                 </span>
+                {contextSubtitle ? (
+                  <span className="truncate text-xs text-muted-foreground">
+                    {contextSubtitle}
+                  </span>
+                ) : null}
                 <span className="truncate text-xs">{user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -118,6 +126,11 @@ export function NavUser({
                   <span className="truncate font-medium">
                     {user.name || "User"}
                   </span>
+                  {contextSubtitle ? (
+                    <span className="truncate text-xs text-muted-foreground">
+                      {contextSubtitle}
+                    </span>
+                  ) : null}
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>

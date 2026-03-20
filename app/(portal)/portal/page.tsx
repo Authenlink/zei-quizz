@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useScrollContainer } from "@/hooks/use-scroll";
+import { getAccountContextLabel } from "@/lib/account-context";
 
 export default function PortalHomePage() {
   const { data: session, status } = useSession();
@@ -86,6 +87,10 @@ export default function PortalHomePage() {
             Bienvenue, {session.user.name} !
           </h1>
           <p className="text-muted-foreground">
+            <span className="text-foreground/80">
+              {getAccountContextLabel(session.user)}
+            </span>
+            {" — "}
             Voici votre espace partenaire.
           </p>
         </div>
