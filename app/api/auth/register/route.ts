@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
           name,
           password: hashedPassword,
           accountType,
+          role: "staff",
           backgroundType: "gradient",
           backgroundGradient: userGradient,
         })
@@ -204,6 +205,7 @@ export async function POST(request: NextRequest) {
             name,
             password: hashedPassword,
             accountType,
+            role: "staff",
             workspaceId: createdWorkspace.id,
             backgroundType: "gradient",
             backgroundGradient: userGradient,
@@ -273,6 +275,7 @@ export async function POST(request: NextRequest) {
           name,
           password: hashedPassword,
           accountType,
+          role: "staff",
           workspaceId: existingWorkspace.id,
           backgroundType: "gradient",
           backgroundGradient: userGradient,

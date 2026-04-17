@@ -3,7 +3,13 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutDashboard, PlusCircle, ClipboardList, User } from "lucide-react";
+import {
+  LayoutDashboard,
+  MessageSquare,
+  PlusCircle,
+  ClipboardList,
+  User,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { NavMain } from "@/components/nav-main";
@@ -31,6 +37,11 @@ const portalNavItems = [
     title: "Accueil",
     url: "/portal",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Assistant IA",
+    url: "/agent",
+    icon: MessageSquare,
   },
   {
     title: "Soumettre un lead",
@@ -143,6 +154,7 @@ export function PortalSidebar({
         <NavUser
           user={user}
           contextSubtitle={accountContext || undefined}
+          hideEmail
         />
       </SidebarFooter>
 

@@ -1,0 +1,29 @@
+# .dockerignore — exclure fichiers sensibles et inutiles
+# Référence : docs/PLAN_IMPLEMENTATION_DEPLOIEMENT_ETAPE_14.md
+
+.env
+.env.*
+!.env.example
+
+keys/
+tests/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+
+.git/
+.gitignore
+.cursorrules
+*.md
+!README.md
+
+data/
+*.log
+.DS_Store
+
+venv/
+.venv/
+env/

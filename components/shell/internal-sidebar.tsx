@@ -4,7 +4,7 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, MessageSquare, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 import { NavMain } from "@/components/nav-main";
@@ -23,32 +23,28 @@ import {
 } from "@/components/ui/sidebar";
 
 // ============================================================
-// ITEMS DE NAVIGATION - A personnaliser selon ton projet
+// ITEMS DE NAVIGATION — shell interne (équipe / back-office)
+// À personnaliser selon ton projet
 // ============================================================
-const navItems = [
+const internalNavItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
+    title: "Assistant IA",
+    url: "/agent",
+    icon: MessageSquare,
+  },
+  {
     title: "Mon compte",
     url: "/profile",
     icon: User,
   },
-  // Ajouter d'autres items ici, exemple avec sous-menu :
-  // {
-  //   title: "Parametres",
-  //   url: "/settings",
-  //   icon: Settings,
-  //   items: [
-  //     { title: "General", url: "/settings/general" },
-  //     { title: "Securite", url: "/settings/security" },
-  //   ],
-  // },
 ];
 
-export function AppSidebar({
+export function InternalSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession();
@@ -68,7 +64,6 @@ export function AppSidebar({
     ? getAccountContextLabel(session.user)
     : "";
 
-  // Charger le gradient de l'utilisateur pour l'avatar
   useEffect(() => {
     const loadUserGradient = async () => {
       try {
@@ -89,7 +84,6 @@ export function AppSidebar({
     }
   }, [session]);
 
-  // Skeleton pendant le chargement de la session
   if (status === "loading") {
     return (
       <Sidebar {...props}>
@@ -124,7 +118,6 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      {/* Header : Logo + Nom de l'app */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -151,21 +144,19 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      {/* Contenu : Navigation */}
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={internalNavItems} />
       </SidebarContent>
 
-      {/* Footer : Menu utilisateur */}
       <SidebarFooter>
         <NavUser
           user={user}
           contextSubtitle={accountContext || undefined}
           backgroundGradient={backgroundGradient}
+          hideEmail
         />
       </SidebarFooter>
 
-      {/* Rail : handle pour collapse/expand */}
       <SidebarRail />
     </Sidebar>
   );

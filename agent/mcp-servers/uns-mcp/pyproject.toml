@@ -1,0 +1,10 @@
+[project]
+name = "uns-mcp-wrapper"
+version = "0.1.0"
+description = "Wrapper for UNS-MCP with pinned unstructured-client (fixes VLMModel ImportError)"
+requires-python = ">=3.12"
+dependencies = [
+    "uns-mcp>=0.1.6",
+    # Pin: VLMModel was removed in unstructured-client 0.42+
+    "unstructured-client>=0.39.1,<0.42.0",
+]

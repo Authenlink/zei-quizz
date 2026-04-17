@@ -1,3 +1,4 @@
+import type { UserRole } from "@/lib/authz";
 import "next-auth";
 import "next-auth/jwt";
 
@@ -9,6 +10,7 @@ declare module "next-auth" {
       name?: string | null;
       image?: string | null;
       accountType: "user" | "business";
+      role: UserRole;
       workspaceId: number | null;
       workspaceName: string | null;
     };
@@ -20,6 +22,7 @@ declare module "next-auth" {
     name?: string | null;
     image?: string | null;
     accountType: "user" | "business";
+    role: UserRole;
     workspaceId?: number | null;
     workspaceName?: string | null;
   }
@@ -32,6 +35,7 @@ declare module "next-auth/jwt" {
     name?: string | null;
     picture?: string | null;
     accountType: "user" | "business";
+    role: UserRole;
     workspaceId?: number | null;
     workspaceName?: string | null;
   }

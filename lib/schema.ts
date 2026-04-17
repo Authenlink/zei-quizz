@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   pgTable,
   serial,
@@ -53,11 +54,11 @@ export const users = pgTable("users", {
   password: text("password"), // Hashe avec bcrypt, nullable pour OAuth futur
   accountType: text("account_type").notNull().default("user"), // "user" | "business"
 
-  // Rôle pour le RBAC (contrôle d'accès par route)
-  // "admin"   → accès complet (internal + portal)
-  // "user"    → accès internal uniquement (équipe interne)
-  // "partner" → accès portal uniquement (partenaires / apporteurs)
-  role: text("role").$type<"admin" | "user" | "partner">().notNull().default("user"),
+  // Rôle pour le RBAC (contrôle d'accès par route) — ne pas confondre avec accountType
+  // "admin" → accès complet (back-office + portail)
+  // "staff" → équipe interne / back-office uniquement
+  // "user"  → utilisateurs du portail (ex-partenaires) uniquement
+  role: text("role").$type<"admin" | "staff" | "user">().notNull().default("staff"),
 
   // Workspace (comptes entreprise) — null pour les comptes personnels
   workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
@@ -77,6 +78,21 @@ export const users = pgTable("users", {
   }>(),
 
   // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ============================================================
+// ASSISTANT IA — conversations persistées (AI SDK UIMessage[])
+// ============================================================
+export const assistantConversations = pgTable("assistant_conversations", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: text("title"),
+  /** Snapshot des messages au format AI SDK (json). */
+  messages: jsonb("messages").notNull().$type<unknown[]>().default(sql`'[]'::jsonb`),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

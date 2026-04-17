@@ -59,11 +59,11 @@ export function proxy(request: NextRequest) {
 // ============================================================
 
 // function canAccessInternal(role?: string): boolean {
-//   return role === "admin" || role === "user";
+//   return role === "admin" || role === "staff";
 // }
 
 // function canAccessPortal(role?: string): boolean {
-//   return role === "partner" || role === "admin";
+//   return role === "user" || role === "admin";
 // }
 
 export const config = {

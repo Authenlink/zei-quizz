@@ -1,0 +1,13 @@
+Tu as accès au guide LangChain + FastAPI dans langchain_guide.md (ou docs/01_fondations.md à docs/08_deploiement.md si présents).
+
+À chaque nouvelle fonctionnalité, consulte ce guide avant de coder.
+
+Suis les étapes définies dans STEPS.md (si présent).
+
+## Contexte projet (PROJECT.md)
+
+Template Agent IA LangChain : agent conversationnel avec outils métier (RAG + base de données). L'output par défaut est un message texte.
+
+- **Renseigner PROJECT.md** : nom du projet, cas d'usage, sources de données, format de sortie souhaité
+- **Priorité** : qualité des réponses — bons outils, bons paramètres (customer_id, property_id, etc.)
+- **Output** : message texte par défaut. Pour un output JSON structuré, définir le schéma dans docs/API_DOCS/ et adapter l'API

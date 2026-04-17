@@ -43,6 +43,7 @@ export function NavUser({
   user,
   backgroundGradient,
   contextSubtitle,
+  hideEmail = false,
 }: {
   user: {
     name: string;
@@ -56,6 +57,8 @@ export function NavUser({
     color2: string;
     css: string;
   } | null;
+  /** Masquer l’adresse e-mail dans le footer et le menu (nom + sous-titre restent visibles) */
+  hideEmail?: boolean;
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
@@ -95,7 +98,9 @@ export function NavUser({
                     {contextSubtitle}
                   </span>
                 ) : null}
-                <span className="truncate text-xs">{user.email}</span>
+                {!hideEmail ? (
+                  <span className="truncate text-xs">{user.email}</span>
+                ) : null}
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -131,7 +136,9 @@ export function NavUser({
                       {contextSubtitle}
                     </span>
                   ) : null}
-                  <span className="truncate text-xs">{user.email}</span>
+                  {!hideEmail ? (
+                    <span className="truncate text-xs">{user.email}</span>
+                  ) : null}
                 </div>
               </div>
             </DropdownMenuLabel>

@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
 import { users, workspaces } from "@/lib/schema";
+import type { UserRole } from "@/lib/authz";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -28,6 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             image: users.image,
             password: users.password,
             accountType: users.accountType,
+            role: users.role,
             workspaceId: users.workspaceId,
           })
           .from(users)
@@ -70,6 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: foundUser.name || undefined,
           image: foundUser.image || undefined,
           accountType: foundUser.accountType as "user" | "business",
+          role: foundUser.role as UserRole,
           workspaceId: foundUser.workspaceId ?? null,
           workspaceName,
         };
@@ -87,6 +90,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.name = user.name;
         token.picture = user.image;
         token.accountType = user.accountType;
+        token.role = user.role;
         token.workspaceId = user.workspaceId ?? null;
         token.workspaceName = user.workspaceName ?? null;
       }
@@ -99,6 +103,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.name = token.name as string;
         session.user.image = token.picture as string | undefined;
         session.user.accountType = token.accountType;
+        // JWT créés avant l’ajout du champ : reconnexion recommandée
+        session.user.role = (token.role as UserRole | undefined) ?? "staff";
         session.user.workspaceId = (token.workspaceId as number | null) ?? null;
         session.user.workspaceName = (token.workspaceName as string | null) ?? null;
       }

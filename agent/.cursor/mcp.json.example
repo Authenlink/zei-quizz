@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "UNS_MCP": {
+      "command": "bash",
+      "args": ["scripts/run_uns_mcp.sh"],
+      "env": {
+        "UNSTRUCTURED_API_KEY": "ta-cle-api-unstructured"
+      }
+    }
+  }
+}

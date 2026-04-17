@@ -137,7 +137,7 @@ export default function DashboardPage() {
             <code className="text-foreground">FilterInput</code> +{" "}
             <code className="text-foreground">FilterSelect</code> +{" "}
             <code className="text-foreground">Combobox</code> — pattern décrit dans
-            UPDATE.md.
+            README.md.
             {debouncedSearch ? (
               <span className="mt-2 block text-foreground">
                 Recherche (debouncée) : « {debouncedSearch} »

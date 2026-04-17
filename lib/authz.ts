@@ -10,22 +10,22 @@
 // `role` dans lib/schema.ts.
 // ============================================================
 
-export type UserRole = "admin" | "user" | "partner";
+export type UserRole = "admin" | "staff" | "user";
 
 /**
  * Accès au shell interne (back-office, dashboard, profil...).
- * Autorisé : équipe interne (user) + administrateurs.
+ * Autorisé : équipe interne (staff) + administrateurs.
  */
 export function canAccessInternal(role?: UserRole | string | null): boolean {
-  return role === "admin" || role === "user";
+  return role === "admin" || role === "staff";
 }
 
 /**
- * Accès au shell portail (espace partenaire, leads...).
- * Autorisé : partenaires + administrateurs.
+ * Accès au shell portail (espace utilisateurs externes, leads...).
+ * Autorisé : rôle portail (user) + administrateurs.
  */
 export function canAccessPortal(role?: UserRole | string | null): boolean {
-  return role === "partner" || role === "admin";
+  return role === "user" || role === "admin";
 }
 
 /**
@@ -33,6 +33,11 @@ export function canAccessPortal(role?: UserRole | string | null): boolean {
  */
 export function isAdmin(role?: UserRole | string | null): boolean {
   return role === "admin";
+}
+
+/** Membre équipe interne / back-office (hors admin global). */
+export function isStaff(role?: UserRole | string | null): boolean {
+  return role === "staff";
 }
 
 // ============================================================
