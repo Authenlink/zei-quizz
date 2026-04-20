@@ -212,7 +212,7 @@ function AssistantViewInner() {
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage>Assistant IA</BreadcrumbPage>
+                <BreadcrumbPage>Assistant IA CSRD/RSE</BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>

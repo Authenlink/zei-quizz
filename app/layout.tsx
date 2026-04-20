@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mon Application",
-  description: "Description de mon application",
+  title: "ZEI - Quizz",
+  description: "Apprendre la RSE",
 };
 
 export default function RootLayout({
@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="white"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

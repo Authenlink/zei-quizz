@@ -15,7 +15,7 @@ export default function LoginPage() {
               className="rounded"
             />
           </div>
-          Mon Application
+          ZEI - Quizz
         </a>
         <LoginForm />
       </div>

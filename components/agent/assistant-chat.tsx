@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { DefaultChatTransport, type SourceUrlUIPart, type UIMessage } from "ai";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import type { RagSourceItem } from "@/types/agent";
 
@@ -25,11 +27,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SUGGESTED_QUESTIONS = [
-  "C'est quoi un Demander Stockly et quel problème ça règle pour mon e-commerce ?",
-  "Comment Stockly comble les ruptures de stock sans changer l'expérience d'achat client ?",
-  "Quelle différence entre rejoindre le réseau en tant que Demander ou en tant que Supplier ?",
-  "Quelle est la vision de Stockly sur le partage d'inventaire entre retailers officiels ?",
-  "En quoi l'intégration avec Stockly reste-t-elle simple pour mon site et mes process ?",
+  "Qu'est-ce que la CSRD et qui est concerné ?",
+  "Comment préparer un premier RDV bilan carbone ?",
+  "Quels sont les enjeux RSE pour les PME industrielles ?",
+  "Quelle différence entre bilan carbone et DPEF ?",
+  "Comment qualifier un prospect sur les enjeux CSRD ?",
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -149,10 +151,59 @@ function AssistantBubble({
       <div className="flex-1 min-w-0">
         <div className="rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3">
           {content ? (
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {content}
+            <div className="text-sm leading-relaxed break-words">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => (
+                    <p className="mb-2 last:mb-0">{children}</p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold">{children}</strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic">{children}</em>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="leading-relaxed">{children}</li>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="text-base font-bold mt-3 mb-1">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-sm font-bold mt-2 mb-1">{children}</h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>
+                  ),
+                  code: ({ children }) => (
+                    <code className="bg-muted rounded px-1 py-0.5 text-xs font-mono">
+                      {children}
+                    </code>
+                  ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline hover:opacity-80"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  hr: () => <hr className="my-2 border-border" />,
+                }}
+              >
+                {content}
+              </ReactMarkdown>
               {isLoading && <StreamingDots />}
-            </p>
+            </div>
           ) : isLoading ? (
             <div className="flex flex-col gap-2">
               <Skeleton className="h-3 w-[85%]" />
@@ -203,11 +254,11 @@ function EmptyState({ onSuggest }: { onSuggest: (q: string) => void }) {
             </div>
           </div>
         </div>
-        <h2 className="text-xl font-bold">Assistant IA Stockly</h2>
+        <h2 className="text-xl font-bold">Assistant IA CSRD/RSE</h2>
         <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
-          Posez des questions sur le modèle Stockly, le réseau Demander et
-          Supplier, et la mise en place — les réponses s'appuient sur la base
-          documentaire branchée à votre agent.
+          Votre expert IA spécialisé en CSRD, bilan carbone et RSE. Préparez
+          vos rendez-vous, qualifiez vos prospects et répondez aux questions
+          de vos clients.
         </p>
       </div>
 
@@ -445,7 +496,7 @@ export function AssistantChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Posez votre question sur Stockly, le réseau ou l'intégration…"
+              placeholder="Posez votre question sur la CSRD, le bilan carbone ou la RSE…"
               disabled={!canInteract}
               rows={1}
               className="min-h-[44px] max-h-36 resize-none flex-1 py-2.5"

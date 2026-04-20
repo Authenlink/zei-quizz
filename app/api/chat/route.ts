@@ -8,6 +8,39 @@ import type { UIMessage } from "ai";
 import { mapUIMessagesToChatPayload } from "@/lib/agent/map-ui-messages-to-payload";
 import { auth } from "@/lib/auth";
 
+/**
+ * Extrait les liens markdown [titre](url) du bloc "Sources" en fin de réponse
+ * et retourne le texte nettoyé + la liste des sources.
+ * Le bloc Sources est retiré du texte pour éviter d'afficher le markdown brut
+ * (la UI affiche déjà les sources via SourcesPanel).
+ */
+function extractSources(raw: string): {
+  text: string;
+  sources: Array<{ title: string; url: string }>;
+} {
+  const sources: Array<{ title: string; url: string }> = [];
+
+  // Capture le bloc Sources quelle que soit la variante de formatage du LLM
+  const sectionRe =
+    /\n+\*{0,2}Sources\s*[:：]\*{0,2}\s*\n([\s\S]+?)$/i;
+  const sectionMatch = raw.match(sectionRe);
+
+  if (sectionMatch) {
+    const section = sectionMatch[1];
+    const linkRe = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g;
+    let m: RegExpExecArray | null;
+    while ((m = linkRe.exec(section)) !== null) {
+      const title = m[1].trim();
+      const url = m[2].trim();
+      if (url) sources.push({ title: title || url, url });
+    }
+    const text = raw.slice(0, raw.length - sectionMatch[0].length).trim();
+    return { text, sources };
+  }
+
+  return { text: raw.trim(), sources };
+}
+
 /** Base URL du serveur FastAPI (sans slash final). `AGENT_API_URL` est un alias de `AGENT_API_BASE_URL`. */
 function agentBaseUrl(): string {
   const raw =
@@ -94,8 +127,19 @@ export async function POST(req: Request) {
         return;
       }
 
-      const text = typeof data.message === "string" ? data.message : "";
+      const raw = typeof data.message === "string" ? data.message : "";
+      const { text, sources } = extractSources(raw);
       const textId = generateId();
+
+      // Émettre les sources avant le texte pour que SourcesPanel s'affiche dès la fin du stream
+      for (const src of sources) {
+        writer.write({
+          type: "source-url",
+          sourceId: generateId(),
+          url: src.url,
+          title: src.title,
+        });
+      }
 
       writer.write({ type: "text-start", id: textId });
 

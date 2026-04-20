@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   LayoutDashboard,
+  BookOpen,
+  Trophy,
   MessageSquare,
-  PlusCircle,
-  ClipboardList,
   User,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -28,15 +28,32 @@ import {
 } from "@/components/ui/sidebar";
 
 // ============================================================
-// ITEMS DE NAVIGATION PORTAIL — à personnaliser selon ton projet
-// L'espace portail est destiné aux utilisateurs "externes"
-// (partenaires, apporteurs d'affaires, etc.)
+// NAVIGATION ZEI QUIZZ — formation RSE / CSRD / ESG
 // ============================================================
 const portalNavItems = [
   {
-    title: "Accueil",
+    title: "Tableau de bord",
     url: "/portal",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Formation",
+    url: "/learn/formations",
+    icon: BookOpen,
+    items: [
+      { title: "Toutes les formations", url: "/learn/formations" },
+      { title: "RSE", url: "/learn/rse" },
+      { title: "CSRD", url: "/learn/csrd" },
+      { title: "ESG", url: "/learn/esg" },
+      { title: "Obligations 2025-2026", url: "/learn/obligations-2025-2026" },
+      { title: "RSE & Marketing", url: "/learn/rse-marketing" },
+      { title: "ZEI & RSE", url: "/learn/zei-rse" },
+    ],
+  },
+  {
+    title: "Mes badges",
+    url: "/learn/achievements",
+    icon: Trophy,
   },
   {
     title: "Assistant IA",
@@ -44,26 +61,10 @@ const portalNavItems = [
     icon: MessageSquare,
   },
   {
-    title: "Soumettre un lead",
-    url: "/portal/leads/new",
-    icon: PlusCircle,
-  },
-  {
-    title: "Mes soumissions",
-    url: "/portal/leads",
-    icon: ClipboardList,
-  },
-  {
     title: "Mon compte",
     url: "/portal/profile",
     icon: User,
   },
-  // Ajouter d'autres items ici, exemple :
-  // {
-  //   title: "Ressources",
-  //   url: "/portal/resources",
-  //   icon: BookOpen,
-  // },
 ];
 
 export function PortalSidebar({
@@ -131,11 +132,9 @@ export function PortalSidebar({
                   />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Mon Application</span>
+                  <span className="truncate font-semibold">ZEI Quizz</span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {accountContext
-                      ? `${accountContext} · Partenaire`
-                      : "Espace Partenaire"}
+                    {accountContext || "Formation RSE"}
                   </span>
                 </div>
               </Link>
