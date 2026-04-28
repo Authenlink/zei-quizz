@@ -31,6 +31,7 @@ type ContentBlock =
       variant: "info" | "warning" | "tip" | "important";
       title?: string;
       text: string;
+      sourceLinks?: { label: string; url: string }[];
     }
   | { type: "table"; headers: string[]; rows: string[][] }
   | { type: "divider" }
@@ -282,6 +283,9 @@ const EC_CSRD_PAGE =
 const EC_SF = "https://finance.ec.europa.eu/sustainable-finance_en";
 const ADEME_PORTAL = "https://bilans-ges.ademe.fr/";
 const AMF_FD = "https://www.amf-france.org/fr/espace-epargne-entreprises/finance-durable";
+/** Zei — La VSME expliquée (PDF), aligné sur docs/zei-knowledge/INDEX.md */
+const ZEI_VSME_LB_PDF =
+  "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20La%20VSME%20expliqu%C3%A9e%20-%20Le%20nouveau%20langage%20commun%20de%20la%20donn%C3%A9es%20ESG%20en%20Europe.pdf";
 
 async function seedObligations() {
   const reset = process.argv.includes("--reset");
@@ -307,7 +311,7 @@ async function seedObligations() {
     slug: THEME_SLUG,
     title: "Obligations réglementaires 2025-2026",
     description:
-      "Loi PACTE et société à mission, DPEF, taxonomie européenne, devoir de vigilance, bilan GES (BEGES), calendriers 2025-2026 et secteurs prioritaires, articulation avec la CSRD.",
+      "Loi PACTE et société à mission, DPEF, taxonomie européenne, devoir de vigilance, bilan GES (BEGES), calendriers 2025-2026 et secteurs prioritaires, VSME (EFRAG), Omnibus et Value Chain Cap, articulation avec la CSRD.",
     icon: "Calendar",
     color: "#f97316",
     order: 4,
@@ -361,9 +365,17 @@ async function seedObligations() {
       "Jalons nationaux et européens, secteurs à enjeu renforcé, et lien entre CSRD, taxonomie et autres obligations.",
     order: 6,
   });
+  const stVsme = await getOrCreateSubtheme({
+    themeId,
+    slug: "vsme-omnibus-value-chain",
+    title: "VSME, Omnibus et Value Chain Cap",
+    description:
+      "Référentiel volontaire EFRAG pour les PME, modules Basic et Complémentaire, clause Value Chain Cap de l'Omnibus et alignement des questionnaires fournisseurs et bancaires (livre blanc Zei).",
+    order: 7,
+  });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MODULES (12) — 2 par sous-thème, 2 leçons + 8 MCQ chacun
+  // MODULES (13) — 6 sous-thèmes × 2 modules + 1 module VSME (7e sous-thème), 2 leçons + 8 MCQ / module
   // ═══════════════════════════════════════════════════════════════════════════
 
   await seedModuleQuick(stPacte, {
@@ -1200,6 +1212,211 @@ async function seedObligations() {
       qq("Un hotspot scope 3 :", "Poste indirect majeur.", "Émission indirecte significative dans la chaîne", ["Émission négligeable", "Dividende", "Marge brute"], 2, "avance", null),
       qq("EUR-Lex pour CSRD :", "Texte officiel de la directive.", "Référence pour obligations européennes", ["Blog", "Forum", "Wiki non officiel"], 1, "debutant", null),
       qq("La Commission sur la taxonomie :", "Critères et guides.", "Publie critères et orientations", ["Vend des crédits carbone", "Gère les impôts français", "Remplace les tribunaux"], 2, "avance", 1),
+    ],
+  });
+
+  await seedModuleQuick(stVsme, {
+    slug: "obl-vsme-omnibus-value-chain-cap",
+    title: "VSME : Basic, Complémentaire et Value Chain Cap",
+    description:
+      "Cadre EFRAG, modules opérationnels et stratégiques, Omnibus et clause Value Chain Cap pour harmoniser les questionnaires ESG (selon Zei — La VSME expliquée).",
+    order: 1,
+    estimatedMinutes: 18,
+    difficulty: "intermediaire",
+    lesson1Title: "VSME : référentiel EFRAG, modules Basic et Complémentaire",
+    lesson1Content: [
+      {
+        type: "heading",
+        level: 2,
+        text: "Un référentiel volontaire aligné sur les ESRS, adapté aux PME non cotées",
+      },
+      {
+        type: "paragraph",
+        text: "La VSME (Voluntary Standard for SMEs) est le référentiel de reporting ESG construit par l'EFRAG pour les PME non cotées. C'est une norme volontaire, basée sur les ESRS de la CSRD, avec moins d'indicateurs, choisis pour s'adapter aux spécificités des plus petites entreprises.",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Module « Basic » : environ 80 indicateurs répartis sur trois piliers",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Environnement : consommation d'énergie, émissions de GES, gestion des déchets, consommation d'eau…",
+          "Social : santé et sécurité, égalité femmes-hommes, absentéisme, formation des salariés…",
+          "Gouvernance : lutte contre la corruption, pratiques éthiques, présence d'une politique RSE…",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "La VSME comprend surtout des indicateurs chiffrés, et moins d'indicateurs narratifs que d'autres modèles de reporting. La norme est volontaire : les entreprises peuvent ignorer certains indicateurs sans avoir à justifier leur non-matérialité.",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Module Complémentaire (publié en décembre 2024)",
+      },
+      {
+        type: "paragraph",
+        text: "Ce module ajoute des indicateurs narratifs (stratégie RSE, engagements, trajectoires de réduction, plans d'action, moyens consacrés) et une documentation des politiques, procédures et gouvernance ESG (ex. politique climat, évaluation des fournisseurs, pilotage RSE par le comité de direction). Il vise les entreprises qui veulent anticiper la CSRD ou répondre à des demandes clients plus exigeantes.",
+      },
+      {
+        type: "paragraph",
+        text: "Le collectif #WeAreEurope (dont Zei fait partie) a aussi développé le modèle Mid Cap pour les ETI : une sélection de 170 points de données, dont la moitié sont quantitatives, couvrant une partie des ESRS, avec double matérialité, cartographie chaîne de valeur et structure « Politique / Actions / Objectifs ». La VSME+ de Zei reprend l'ensemble des points de données des modules Basic et Complémentaire de la VSME, avec notamment la cotation des IROs et des application requirements.",
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text: "Le livre blanc Zei indique que le module VSME B est testable en autonomie pour se familiariser avec les exigences de la VSME, et que le module VSME C l'est également en autonomie. Source : Zei — La VSME expliquée, §II.1 et §II.2.",
+      },
+      {
+        type: "regulatory_note",
+        year: 2025,
+        companySize: "all",
+        text: "La VSME est particulièrement mise en avant en 2025, notamment lors de Produrable, en lien avec les Omnibus de la CSRD ; l'EFRAG continue à structurer la norme et ses modules B et C.",
+      },
+      {
+        type: "sources",
+        items: [
+          {
+            label: "Zei — La VSME expliquée (PDF)",
+            url: ZEI_VSME_LB_PDF,
+          },
+          { label: "Directive (UE) 2022/2464 (CSRD) — EUR-Lex", url: EUR_CSRD },
+          { label: "Corporate sustainability reporting — Commission européenne", url: EC_CSRD_PAGE },
+        ],
+      },
+    ],
+    lesson2Title: "Omnibus, Value Chain Cap et impacts pour les entreprises",
+    lesson2Content: [
+      {
+        type: "heading",
+        level: 2,
+        text: "L'Omnibus et la Value Chain Cap",
+      },
+      {
+        type: "paragraph",
+        text: "Avec l'Omnibus, le reporting durable entre dans une phase d'harmonisation ; la VSME s'impose comme colonne vertébrale du futur reporting ESG en Europe, y compris pour les grandes entreprises qui devront évaluer leur chaîne de valeur selon ce cadre. La clause Value Chain Cap impose que tout questionnaire fournisseur ou bancaire soit aligné sur la VSME.",
+      },
+      {
+        type: "paragraph",
+        text: "Peu mise en avant lors de la réglementation Omnibus de février 2025, la Value Chain Cap stipule que chaque question posée à un fournisseur dans le cadre d'une évaluation ESG doit correspondre à un indicateur officiel du référentiel. Les acheteurs piochent dans les indicateurs VSME ; les fournisseurs peuvent collecter leurs données une seule fois pour les transmettre à tous leurs clients. Le marché peut s'auto-réguler (refus de questionnaires non alignés, signalement), sur le modèle évoqué pour le RGPD dans le livre blanc.",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Questionnaires concernés et hors périmètre",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Concernés : questionnaires d'appels d'offres ; questionnaires fournisseurs/prestataires nécessaires pour que l'acheteur réponde à sa CSRD ; questionnaires ESG demandés par un banquier dans un financement.",
+          "Non concernés : questionnaires des investisseurs ; scores RSE et ESG non imposés mais utilisés pour favoriser certains fournisseurs.",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "Les questions posées seront limitées au répertoire VSME (sans obligation de tout poser) ; les définitions doivent suivre celles de la VSME. Pour les fournisseurs et emprunteurs, la VSME sert de trame de rapport standardisée et de répertoire de données ESG universel (ex. envoi Excel aux tiers).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Comparabilité et données",
+      },
+      {
+        type: "paragraph",
+        text: "La Value Chain Cap favorise un modèle de données unique et une typologie où les données narratives cèdent davantage la place aux chiffres ; les données sont de plus en plus demandées en intensités relatives plutôt qu'en valeurs absolues, pour comparer des entreprises de tailles différentes. La VSME devient un « répertoire ESG universel » pour de nombreuses entreprises européennes.",
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text: "Le livre blanc relie la mise en avant de la VSME en 2025 aux Omnibus de la CSRD et à la perspective d'une recommandation de la Commission sur la VSME comme modèle unique d'évaluation fournisseurs (Value Chain Cap). Source : Zei — La VSME expliquée, §II.4 et §I.",
+      },
+      {
+        type: "sources",
+        items: [
+          { label: "Zei — La VSME expliquée (PDF)", url: ZEI_VSME_LB_PDF },
+          { label: "Directive (UE) 2022/2464 (CSRD) — EUR-Lex", url: EUR_CSRD },
+        ],
+      },
+    ],
+    questions: [
+      qq(
+        "Qui a développé le référentiel VSME ?",
+        "Source : Zei — La VSME expliquée, §II.1 : la VSME est construite par l'EFRAG.",
+        "L'EFRAG",
+        ["La Commission européenne seule", "L'AMF", "L'ADEME"],
+        2,
+        "debutant",
+        0
+      ),
+      qq(
+        "Le module « Basic » de la VSME comprend environ :",
+        "Source : Zei — La VSME expliquée, §II.1 : le module Basic comprend environ 80 indicateurs ESG.",
+        "80 indicateurs ESG",
+        ["10 indicateurs", "500 indicateurs", "4 200 points XBRL"],
+        2,
+        "debutant",
+        0
+      ),
+      qq(
+        "Le module Complémentaire de la VSME a été publié en :",
+        "Source : Zei — La VSME expliquée, §II.2 : publication en décembre 2024.",
+        "Décembre 2024",
+        ["Janvier 2020", "Mars 2023", "Juillet 2026"],
+        2,
+        "intermediaire",
+        0
+      ),
+      qq(
+        "Pour une entreprise qui débute en RSE, un atout de la norme VSME est que :",
+        "Source : Zei — La VSME expliquée, §II.1 : la norme est volontaire ; on peut ignorer certains indicateurs sans justifier une non-matérialité.",
+        "Certains indicateurs peuvent être ignorés sans justification de non-matérialité",
+        ["Tous les indicateurs sont obligatoires avec audit externe", "Seules les grandes entreprises peuvent l'utiliser", "La VSME remplace le Code de commerce français"],
+        3,
+        "intermediaire",
+        0
+      ),
+      qq(
+        "La Value Chain Cap est notamment évoquée dans le livre blanc Zei comme peu mise en avant lors de la réglementation Omnibus de :",
+        "Source : Zei — La VSME expliquée, §III.1 : Omnibus de février 2025.",
+        "Février 2025",
+        ["Février 2019", "Janvier 2030", "Aucune date n'est mentionnée"],
+        2,
+        "intermediaire",
+        1
+      ),
+      qq(
+        "Selon le livre blanc Zei, les questionnaires des investisseurs relèvent-ils de la Value Chain Cap ?",
+        "Source : Zei — La VSME expliquée, §III.2 : ne sont pas concernés les questionnaires des investisseurs.",
+        "Non",
+        ["Oui, systématiquement", "Oui, uniquement s'ils sont en anglais", "Uniquement pour les banques centrales"],
+        1,
+        "debutant",
+        1
+      ),
+      qq(
+        "Selon le livre blanc, chaque question d'un questionnaire ESG d'évaluation fournisseur doit :",
+        "Source : Zei — La VSME expliquée, §III.1 : correspondre à un indicateur officiel du référentiel VSME.",
+        "Correspondre à un indicateur officiel du référentiel VSME",
+        ["Être librement inventée par l'acheteur", "Reposer uniquement sur des avis Google", "Ignorer tout référentiel public"],
+        3,
+        "avance",
+        1
+      ),
+      qq(
+        "Le modèle Mid Cap #WeAreEurope comporte une sélection de :",
+        "Source : Zei — La VSME expliquée, §II.3 : 170 points de données, dont la moitié sont quantitatives.",
+        "170 points de données",
+        ["80 points de données", "10 000 indicateurs", "4 indicateurs"],
+        3,
+        "avance",
+        0
+      ),
     ],
   });
 

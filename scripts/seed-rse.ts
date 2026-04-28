@@ -22,6 +22,13 @@ config({ path: ".env.local", override: true });
 const sql = postgres(process.env.DATABASE_URL!, { max: 1 });
 const db = drizzle(sql);
 
+// Sources ZEI (Phase 19) — PDF publics INDEX ; ne pas tronquer les URLs.
+// Cf. docs/zei-knowledge/*/ frontmatter `source_url`.
+const ZEI_RSE_2025_PERFORMANCE_PDF =
+  "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20En%202025%20comment%20passer%20%C3%A0%20une%20RSE%20de%20performance%20%3F.pdf";
+const ZEI_GUIDE_COLLECTE_ESG_PDF =
+  "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Guide%20Zei%20-%20Collecte%20ESG%20%20arr%C3%AAtez%20de%20bricoler%2c%20commencez%20%C3%A0%20piloter.pdf";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -29,7 +36,13 @@ type ContentBlock =
   | { type: "heading"; level: 2 | 3; text: string }
   | { type: "paragraph"; text: string }
   | { type: "list"; style?: "bullet" | "ordered"; items: string[] }
-  | { type: "callout"; variant: "info" | "warning" | "tip" | "important"; title?: string; text: string }
+  | {
+      type: "callout";
+      variant: "info" | "warning" | "tip" | "important";
+      title?: string;
+      text: string;
+      sourceLinks?: { label: string; url: string }[];
+    }
   | { type: "table"; headers: string[]; rows: string[][] }
   | { type: "divider" }
   | { type: "regulatory_note"; year?: number; companySize?: "all" | "large" | "sme"; text: string }
@@ -246,7 +259,7 @@ async function seedRSE() {
     title: "ISO 26000 : le cadre de référence international",
     description: "Découvrez les 7 domaines d'action de la norme ISO 26000 et comment elle structure la démarche RSE de toute organisation.",
     order: 2,
-    estimatedMinutes: 15,
+    estimatedMinutes: 20,
     difficulty: "intermediaire",
   });
 
@@ -311,6 +324,24 @@ async function seedRSE() {
     ] as ContentBlock[],
   });
 
+  const l1_2_3 = await insertLesson({
+    moduleId: m1_2,
+    title: "Perspectives vers 2027 : harmonisation et redevabilité",
+    order: 3,
+    type: "lesson",
+    content: [
+      { type: "heading", level: 2, text: "Et après ? Projections à l'horizon 2027" },
+      { type: "paragraph", text: "À l'horizon 2027, un objectif majeur est l'alignement progressif des pratiques ESG : la CSRD pour les grandes entreprises, la VSME pour les PME, et la mobilisation des fédérations professionnelles convergent vers un socle commun partagé par les acteurs économiques, quelle que soit leur taille ou leur filière." },
+      { type: "paragraph", text: "Les données ESG devraient s'imposer comme un outil de pilotage : indicateurs suivis régulièrement, partagés entre directions, utilisés pour orienter les décisions — avec pour enjeu de mieux exploiter les données plutôt que d'en produire toujours plus." },
+      { type: "paragraph", text: "La crédibilité reposera davantage sur la démonstration d'impacts réels. La redevabilité — au sens où l'ISO 26000 encourage déjà à rendre compte des impacts — devient centrale : mesurer les effets réels des actions, pas seulement les compter. L'ancrage local des résultats (sites, équipes) renforce souvent l'adhésion mieux que les seuls messages institutionnels." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Relier la redevabilité d'ISO 26000 au marché de 2027, c'est le même fil : des preuves, des méthodes, une transparence acceptée — y compris sur les limites — pour que la stratégie durable ne soit pas perçue comme cosmétique." },
+      { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
+        { label: "ISO 26000 — Site officiel ISO", url: "https://www.iso.org/iso-26000-social-responsibility.html" },
+      ]},
+    ] as ContentBlock[],
+  });
+
   await insertQuestion({ moduleId: m1_2, lessonId: l1_2_1, question: "En quelle année l'ISO 26000 a-t-elle été publiée ?", type: "mcq", difficulty: "debutant", points: 1, order: 1, explanation: "L'ISO 26000 a été publiée en novembre 2010, après plusieurs années de travaux impliquant des représentants de plus de 90 pays.", options: [{ text: "2001", isCorrect: false, order: 1 }, { text: "2005", isCorrect: false, order: 2 }, { text: "2010", isCorrect: true, order: 3 }, { text: "2014", isCorrect: false, order: 4 }] });
   await insertQuestion({ moduleId: m1_2, lessonId: l1_2_1, question: "L'ISO 26000 est une norme certifiable, comme l'ISO 9001.", type: "true_false", difficulty: "debutant", points: 1, order: 2, explanation: "Faux. L'ISO 26000 est une norme de guidance, non certifiable. Contrairement à l'ISO 9001 (qualité) ou l'ISO 14001 (environnement), il n'existe pas de certification ISO 26000.", options: [{ text: "Vrai", isCorrect: false, order: 1 }, { text: "Faux", isCorrect: true, order: 2 }, { text: "Cela dépend du pays", isCorrect: false, order: 3 }, { text: "Cela dépend de la taille", isCorrect: false, order: 4 }] });
   await insertQuestion({ moduleId: m1_2, lessonId: l1_2_1, question: "Combien de questions centrales comporte l'ISO 26000 ?", type: "mcq", difficulty: "debutant", points: 1, order: 3, explanation: "L'ISO 26000 s'articule autour de 7 questions centrales : gouvernance, droits de l'homme, conditions de travail, environnement, loyauté des pratiques, questions consommateurs, communautés.", options: [{ text: "3", isCorrect: false, order: 1 }, { text: "5", isCorrect: false, order: 2 }, { text: "7", isCorrect: true, order: 3 }, { text: "10", isCorrect: false, order: 4 }] });
@@ -319,6 +350,8 @@ async function seedRSE() {
   await insertQuestion({ moduleId: m1_2, question: "Combien de pays ont participé à l'élaboration de l'ISO 26000 ?", type: "mcq", difficulty: "intermediaire", points: 2, order: 6, explanation: "Plus de 90 pays ont participé à l'élaboration de l'ISO 26000, ce qui en fait une norme véritablement internationale et consensuelle.", options: [{ text: "Plus de 30 pays", isCorrect: false, order: 1 }, { text: "Plus de 50 pays", isCorrect: false, order: 2 }, { text: "Plus de 90 pays", isCorrect: true, order: 3 }, { text: "Plus de 150 pays", isCorrect: false, order: 4 }] });
   await insertQuestion({ moduleId: m1_2, question: "Quelle question centrale d'ISO 26000 couvre la lutte anti-corruption ?", type: "mcq", difficulty: "intermediaire", points: 2, order: 7, explanation: "La question 'Loyauté des pratiques' couvre notamment la lutte contre la corruption, la concurrence loyale et la promotion de la RSE dans la chaîne de valeur.", options: [{ text: "Gouvernance de l'organisation", isCorrect: false, order: 1 }, { text: "Droits de l'homme", isCorrect: false, order: 2 }, { text: "Relations et conditions de travail", isCorrect: false, order: 3 }, { text: "Loyauté des pratiques", isCorrect: true, order: 4 }] });
   await insertQuestion({ moduleId: m1_2, question: "Laquelle de ces normes est certifiable contrairement à l'ISO 26000 ?", type: "mcq", difficulty: "debutant", points: 1, order: 8, explanation: "L'ISO 14001 est une norme de système de management environnemental certifiable. L'ISO 26000, GRI et DPEF sont des référentiels de guidance ou de reporting, non certifiables.", options: [{ text: "GRI Standards", isCorrect: false, order: 1 }, { text: "ISO 14001", isCorrect: true, order: 2 }, { text: "DPEF", isCorrect: false, order: 3 }, { text: "Aucune de ces réponses", isCorrect: false, order: 4 }] });
+  await insertQuestion({ moduleId: m1_2, lessonId: l1_2_3, question: "Selon les projections du livre blanc Zei sur l'horizon 2027, quel enjeu principal concerne l'exploitation des données ESG ?", type: "mcq", difficulty: "intermediaire", points: 2, order: 9, explanation: "Le livre blanc indique que l'enjeu ne sera pas tant de produire plus de données ESG que de mieux les exploiter, en les articulant avec les priorités et les arbitrages.", options: [{ text: "Produire uniquement des rapports annuels sans suivi", isCorrect: false, order: 1 }, { text: "Mieux exploiter les données plutôt qu'en produire toujours plus", isCorrect: true, order: 2 }, { text: "Supprimer tout tableau de bord interne", isCorrect: false, order: 3 }, { text: "Éviter toute comparabilité entre entreprises", isCorrect: false, order: 4 }] });
+  await insertQuestion({ moduleId: m1_2, lessonId: l1_2_3, question: "Dans la même perspective Zei 2027, la redevabilité des démarches RSE implique notamment de :", type: "mcq", difficulty: "intermediaire", points: 2, order: 10, explanation: "Le livre blanc lie redevabilité et capacité à démontrer des résultats concrets, à mesurer les effets réels des actions et à accepter une certaine transparence, y compris sur les limites.", options: [{ text: "Ne communiquer que des engagements généraux", isCorrect: false, order: 1 }, { text: "Mesurer les effets réels des actions et accepter la transparence sur les limites", isCorrect: true, order: 2 }, { text: "Ignorer les attentes des investisseurs", isCorrect: false, order: 3 }, { text: "Éviter toute évaluation interne", isCorrect: false, order: 4 }] });
 
   // ═══════════════════════════════════════════════════════════
   // SOUS-THÈME 2 : Les 3 piliers RSE
@@ -440,7 +473,10 @@ async function seedRSE() {
       { type: "callout", variant: "info", title: "Indicateurs sociaux clés", text: "Les entreprises RSE suivent des indicateurs comme : le taux d'absentéisme, l'index d'égalité professionnelle (obligatoire en France depuis 2019 pour les entreprises de +50 salariés), le taux de fréquence des accidents du travail, le taux de formation." },
       { type: "heading", level: 3, text: "La QVCT (Qualité de Vie et des Conditions de Travail)" },
       { type: "paragraph", text: "La QVCT, renommée depuis 2020, désigne les actions qui permettent de concilier amélioration des conditions de travail des salariés et performance globale de l'entreprise." },
+      { type: "paragraph", text: "Dans une organisation qui monte en maturité ESG, la collecte et la qualité des données sociales et environnementales s'appuient souvent sur des réseaux transverses : des correspondants ou référents répartis par métiers ou sites assurent la remontée d'information et l'ancrage local des bonnes pratiques." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Le livre blanc Zei sur la RSE de performance insiste sur ces relais : ils fluidifient le reporting tout en rapprochant le siège du terrain — un complément utile aux indicateurs RH classiques présentés ci-dessus." },
       { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
         { label: "Index d'égalité professionnelle — Ministère du Travail", url: "https://www.gouvernement.fr/action/l-index-de-l-egalite-professionnelle" },
         { label: "Qualité de Vie et Conditions de Travail (QVCT) — Anact", url: "https://www.anact.fr/quest-ce-que-la-qvct" },
       ]},
@@ -593,7 +629,10 @@ async function seedRSE() {
       { type: "heading", level: 3, text: "Les apports de la loi Grenelle 2 (2010)" },
       { type: "paragraph", text: "La loi Grenelle 2 a renforcé la loi NRE en élargissant le périmètre (toutes les SA de plus de 500 salariés) et en ajoutant un volet sociétal. Elle a introduit l'obligation de vérification par un organisme tiers indépendant (OTI)." },
       { type: "callout", variant: "info", title: "Chronologie du reporting extra-financier en France", text: "2001 : loi NRE (cotées) → 2010 : loi Grenelle 2 (SA +500 salariés) → 2017 : transposition NFRD → DPEF → 2025-2028 : transition vers la CSRD." },
+      { type: "paragraph", text: "Au-delà du calendrier français, les livrables européens (CSRD, VSME) participent à un mouvement plus large d'harmonisation des pratiques ESG entre acteurs — voisin du socle commun évoqué pour l'horizon 2027 dans la littérature Zei sur la RSE de performance." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Pour une entreprise déjà soumise ou préparée au reporting extra-financier en France, l'enjeu n'est pas seulement local : c'est aussi la lisibilité croissante des données ESG pour les parties prenantes européennes et les chaînes de valeur." },
       { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
         { label: "RSE et loi PACTE : nouveau cadre légal — Études et Analyses (2025)", url: "https://www.etudes-et-analyses.com/blog/decryptage-economique/responsabilite-societale-entreprises-rse-loi-pacte-nouveau-cadre-legal-08-04-2025.html" },
         { label: "Lois et réglementations RSE — RSE Inside", url: "https://rse-inside.fr/ressource-rse/lois-et-reglementations-rse/" },
         { label: "Reporting extra-financier obligatoire 2025 — Climate Selectra", url: "https://climate.selectra.com/fr/entreprises/reglementations/reporting-extra-financier" },
@@ -656,7 +695,7 @@ async function seedRSE() {
     title: "RSE et performance financière",
     description: "Les données et études qui démontrent le lien entre RSE et performance économique.",
     order: 1,
-    estimatedMinutes: 10,
+    estimatedMinutes: 18,
     difficulty: "intermediaire",
   });
 
@@ -677,7 +716,10 @@ async function seedRSE() {
         "Les 'Reinventors' ESG ont augmenté leurs revenus de 15 points supplémentaires sur 2019-2022 (Accenture, juin 2024)",
       ]},
       { type: "callout", variant: "tip", title: "L'écart de valeur RSE", text: "Selon Accenture (2024), seulement 15% des entreprises utilisent leurs compétences ESG pour accélérer leur stratégie. L'écart de valeur entre les leaders RSE et les autres devrait atteindre 37 points de pourcentage d'ici 2026." },
+      { type: "paragraph", text: "Le livre blanc Zei « En 2025, comment passer à une RSE de performance ? » souligne que le cadre réglementaire européen modifie aussi la manière dont les entreprises évaluent le ROI de la RSE : réduire la consommation d'énergie, améliorer le taux de rendement, diminuer le turnover sont autant de gains concrets, mesurables et monétisables." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "La RSE structurée comme un levier de performance, ce n'est pas l'accumulation de labels : c'est mesurer, comparer et piloter pour que l'impact pèse dans les décisions — aligné sur la lecture Zei du passage « de l'image à l'efficacité » dans le même livre blanc." },
       { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
         { label: "RSE et avantage concurrentiel : compliance vers compétitivité — Accenture (2024)", url: "https://www.accenture.com/fr-fr/insights/consulting/esg-reporting-compliance-competitive-advantage" },
         { label: "RSE Définition : avantages et stratégie 2025 — sanscravate.fr", url: "https://sanscravate.fr/rse-definition-entreprise/" },
       ]},
@@ -701,10 +743,34 @@ async function seedRSE() {
       { type: "heading", level: 3, text: "RSE dans les appels d'offres" },
       { type: "paragraph", text: "La RSE est également un avantage concurrentiel dans les appels d'offres publics et privés. Le Code de la commande publique encourage la prise en compte de critères environnementaux et sociaux. Certains donneurs d'ordre imposent des questionnaires RSE à leurs fournisseurs via des plateformes comme EcoVadis (130 000+ entreprises évaluées dans 175 pays)." },
       { type: "callout", variant: "info", title: "EcoVadis", text: "EcoVadis est la principale plateforme mondiale d'évaluation RSE des chaînes d'approvisionnement. Plus de 130 000 entreprises dans 175 pays ont été évaluées." },
+      { type: "paragraph", text: "Dans le livre blanc Zei sur la RSE de performance, des directions générales expliquent comment des comités ESG ou des instances de pilotage associent la direction aux métiers pour valider une feuille de route annuelle et donner du poids aux arbitrages RSE." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Quand la RSE devient critère dans les investissements, les achats ou les appels d'offres, les équipes qui « traduisent » l'ESG pour les métiers — avec des sponsors, des référents et des comités transverses — évitent que le sujet reste cantonné au reporting obligatoire." },
       { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
         { label: "EcoVadis — plateforme d'évaluation RSE fournisseurs", url: "https://ecovadis.com/fr/" },
         { label: "RSE et commande publique — Direction des Achats de l'État", url: "https://www.economie.gouv.fr/dae/achat-responsable" },
         { label: "RSE et attractivité — ANDRH", url: "https://andrh.fr/" },
+      ]},
+    ] as ContentBlock[],
+  });
+
+  const l5_1_3 = await insertLesson({
+    moduleId: m5_1,
+    title: "ROI RSE : pilotage défensif et pilotage offensif",
+    order: 3,
+    type: "lesson",
+    content: [
+      { type: "heading", level: 2, text: "Mesurer l'impact : indicateurs économiques et ROI" },
+      { type: "paragraph", text: "La question du retour sur investissement de la RSE est au cœur des échanges en 2025. Longtemps jugée difficile à quantifier, l'impact des actions ESG fait l'objet d'un travail de mesure accru : certaines organisations monétisent directement des effets (tonnes de CO₂ évitées, économies d'énergie, baisse de l'absentéisme, fidélisation clients ou talents) ; d'autres construisent des indicateurs composites mêlant critères financiers et extra-financiers dans des tableaux de bord de performance globale." },
+      { type: "paragraph", text: "Ce mouvement fait basculer la représentation de la RSE : elle n'est plus seulement une charge liée à la conformité, mais un investissement. Il ne s'agit plus uniquement de « prouver que l'on fait », mais de démontrer que ce que l'on fait est efficace — ce qui reconfigure le dialogue entre équipes RSE et directions métiers." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Le livre blanc Zei distingue un pilotage défensif (répondre aux exigences) et un pilotage offensif (créer de la valeur par la différenciation, l'efficacité et l'innovation). C'est cette bascule qui permet d'ancrer la RSE dans les arbitrages." },
+      { type: "paragraph", text: "La coopération entre la RSE et la finance se renforce : dans plusieurs entreprises, les données ESG sont intégrées aux outils de reporting financier pour articuler performance économique et durabilité dans les décisions." },
+      { type: "heading", level: 3, text: "Temps de collecte vs temps d'analyse" },
+      { type: "paragraph", text: "Le Guide Zei « Collecte ESG » observe que la charge de travail des directions RSE peut être déséquilibrée : une part importante du temps peut être absorbée par la collecte et la fiabilisation des données (relances, nettoyage, contrôle des unités), au détriment de l'analyse et du pilotage de la transformation." },
+      { type: "callout", variant: "tip", title: "Vu par ZEI", text: "Le guide Zei quantifie ce déséquilibre : en moyenne, une direction RSE consacre environ 80 % de son temps à collecter la donnée et environ 20 % à l'analyser et à piloter — d'où l'intérêt d'industrialiser la collecte pour libérer du temps stratégique." },
+      { type: "sources", items: [
+        { label: "Zei — En 2025, comment passer à une RSE de performance ? (PDF)", url: ZEI_RSE_2025_PERFORMANCE_PDF },
+        { label: "Zei — Guide Collecte ESG : arrêtez de bricoler, commencez à piloter (PDF)", url: ZEI_GUIDE_COLLECTE_ESG_PDF },
       ]},
     ] as ContentBlock[],
   });
@@ -717,6 +783,8 @@ async function seedRSE() {
   await insertQuestion({ moduleId: m5_1, question: "Selon Accenture, de combien de points les 'Reinventors' ESG ont-ils augmenté leurs revenus sur 2019-2022 ?", type: "mcq", difficulty: "avance", points: 3, order: 6, explanation: "Selon Accenture, les 'Reinventors' (entreprises RSE avancées) ont augmenté leurs revenus de 15 points de pourcentage supplémentaires sur 2019-2022.", options: [{ text: "5 points", isCorrect: false, order: 1 }, { text: "10 points", isCorrect: false, order: 2 }, { text: "15 points", isCorrect: true, order: 3 }, { text: "25 points", isCorrect: false, order: 4 }] });
   await insertQuestion({ moduleId: m5_1, question: "Combien d'entreprises ont été évaluées par EcoVadis dans le monde ?", type: "mcq", difficulty: "intermediaire", points: 2, order: 7, explanation: "Plus de 130 000 entreprises dans 175 pays ont été évaluées par EcoVadis.", options: [{ text: "Plus de 10 000", isCorrect: false, order: 1 }, { text: "Plus de 50 000", isCorrect: false, order: 2 }, { text: "Plus de 130 000", isCorrect: true, order: 3 }, { text: "Plus de 500 000", isCorrect: false, order: 4 }] });
   await insertQuestion({ moduleId: m5_1, question: "Les entreprises RSE réduisent leur taux de turnover jusqu'à :", type: "mcq", difficulty: "intermediaire", points: 2, order: 8, explanation: "Les entreprises reconnues pour leur engagement RSE réduisent leur taux de turnover jusqu'à 25%.", options: [{ text: "5%", isCorrect: false, order: 1 }, { text: "15%", isCorrect: false, order: 2 }, { text: "25%", isCorrect: true, order: 3 }, { text: "50%", isCorrect: false, order: 4 }] });
+  await insertQuestion({ moduleId: m5_1, lessonId: l5_1_3, question: "Selon le livre blanc Zei sur la RSE de performance, le pilotage offensif de la RSE correspond surtout à :", type: "mcq", difficulty: "intermediaire", points: 2, order: 9, explanation: "Le livre blanc oppose un pilotage défensif (répondre aux exigences) à un pilotage offensif qui crée de la valeur par la différenciation, l'efficacité et l'innovation.", options: [{ text: "Répondre uniquement aux obligations légales minimales", isCorrect: false, order: 1 }, { text: "Créer de la valeur par la différenciation, l'efficacité et l'innovation", isCorrect: true, order: 2 }, { text: "Réduire à zéro tout investissement RSE", isCorrect: false, order: 3 }, { text: "Se limiter à la communication externe", isCorrect: false, order: 4 }] });
+  await insertQuestion({ moduleId: m5_1, lessonId: l5_1_3, question: "Selon le Guide Zei « Collecte ESG », une direction RSE passe en moyenne environ :", type: "mcq", difficulty: "intermediaire", points: 2, order: 10, explanation: "Le guide indique qu'en moyenne environ 80 % du temps est consacré à la collecte de la donnée et 20 % à l'analyser et à piloter la transformation.", options: [{ text: "20 % du temps à collecter et 80 % à analyser", isCorrect: false, order: 1 }, { text: "50 % à collecter et 50 % à analyser", isCorrect: false, order: 2 }, { text: "Environ 80 % à collecter la donnée et 20 % à analyser et piloter", isCorrect: true, order: 3 }, { text: "100 % du temps sur la collecte", isCorrect: false, order: 4 }] });
 
   // ═══════════════════════════════════════════════════════════
   // SOUS-THÈME 6 : ZEI et la RSE — ZEI est une plateforme SaaS ESG

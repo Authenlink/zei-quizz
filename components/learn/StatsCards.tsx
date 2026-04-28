@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, BookOpenCheck, Layers, Target } from "lucide-react";
+import { Award, BookOpenCheck, Layers, Sparkles, Target } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import type { ProgressThemeRow } from "@/lib/types/progress-dashboard";
@@ -10,12 +10,14 @@ export function StatsCards({
   totalModules,
   averageScore,
   totalAttempts,
+  zeiEnrichedModulesConsulted,
   themes,
 }: {
   completedModules: number;
   totalModules: number;
   averageScore: number;
   totalAttempts: number;
+  zeiEnrichedModulesConsulted: number;
   themes: ProgressThemeRow[];
 }) {
   const themesWithProgress = themes.filter((t) => t.completedModules > 0).length;
@@ -48,10 +50,16 @@ export function StatsCards({
       hint: "Au moins un module complété par thème",
       icon: Award,
     },
+    {
+      label: "Modules enrichis ZEI consultés",
+      value: String(zeiEnrichedModulesConsulted),
+      hint: "Fiches modules avec contenu ZEI ouverts au moins une fois",
+      icon: Sparkles,
+    },
   ];
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {items.map((item) => (
         <Card key={item.label}>
           <CardContent className="flex items-start gap-3 pt-6">

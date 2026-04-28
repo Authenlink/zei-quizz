@@ -9,9 +9,9 @@ Pour ajouter vos propres tools :
 """
 
 from app.tools.example import example_tool
-from app.tools.rag import search_knowledge_tool
+from app.tools.rag import search_knowledge_tool, search_zei_docs_tool
 
-TOOLS_PUBLIC = [example_tool, search_knowledge_tool]
+TOOLS_PUBLIC = [example_tool, search_knowledge_tool, search_zei_docs_tool]
 TOOLS_REQUIRING_CUSTOMER_ID = []
 
 

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isPostgresUndefinedTableError } from "@/lib/db-errors";
 import type { RecommendedModule } from "@/lib/types/progress-dashboard";
 import {
   quizThemes,
@@ -10,6 +11,7 @@ import {
   quizModules,
   userModuleProgress,
   userQuizAttempts,
+  userZeiEnrichedModuleViews,
 } from "@/lib/schema";
 
 function learnModuleHref(
@@ -263,6 +265,18 @@ export async function GET() {
         )
       : 0;
 
+  let zeiEnrichedModulesConsulted = 0;
+  try {
+    const [zeiViewRow] = await db
+      .select({ c: count() })
+      .from(userZeiEnrichedModuleViews)
+      .where(eq(userZeiEnrichedModuleViews.userId, userId));
+    zeiEnrichedModulesConsulted = Number(zeiViewRow?.c ?? 0);
+  } catch (e) {
+    if (!isPostgresUndefinedTableError(e)) throw e;
+    /* Table Phase 21 pas encore créée : exécuter `drizzle/0002_clammy_quicksilver.sql` ou `pnpm db:push`. */
+  }
+
   return NextResponse.json({
     globalProgressPercent,
     totalModules: totalModulesAll,
@@ -295,5 +309,6 @@ export async function GET() {
       };
     }),
     recommendedModule,
+    zeiEnrichedModulesConsulted,
   });
 }

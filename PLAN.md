@@ -382,3 +382,81 @@ La logique d’attribution est centralisée dans `lib/achievements/award.ts` (`c
 | GET | `/api/progress` | Progression complète de l'utilisateur |
 | GET | `/api/progress/[moduleId]` | Progression sur un module |
 | GET | `/api/achievements` | Badges de l'utilisateur |
+
+---
+
+## V2 — Knowledge Base ZEI & RAG
+
+À partir de la V2, tous les quizzs et l'assistant IA `/agent` sont alimentés par la documentation officielle de ZEI (PDFs livres blancs + Google Slides). La V1 (sources web publiques) reste la base, mais chaque module est enrichi de callouts "Vu par ZEI" + sources URL publiques.
+
+### Architecture de la Knowledge Base
+
+```
+docs/
+├── *.pdf                           ← sources brutes ZEI (inchangées)
+└── zei-knowledge/                  ← V2 — source de vérité Markdown
+    ├── INDEX.md                    ← récap pour Cursor (mapping doc → thème/module)
+    ├── csrd/
+    │   ├── en-bref-5-csrd.md
+    │   └── vsme-langage-commun.md
+    ├── esg-collecte/
+    │   ├── guide-collecte-esg.md
+    │   └── checklist-collecte-esg.md
+    ├── rse-performance/
+    │   └── rse-2025-performance.md
+    └── zei-offre/
+        ├── plaquette-synthetique-2026.md
+        └── proposition-portalp.md
+
+agent/rag/documents/
+└── zei/                            ← copie/symlink de docs/zei-knowledge/<cat>/*.md
+    └── (mêmes sous-dossiers, ingérés par scripts/ingest_knowledge.py)
+```
+
+### Format frontmatter Markdown
+
+Chaque `.md` ZEI commence par un frontmatter YAML qui sert à la fois à Cursor (lors du reseed) et à l'agent runtime (metadata Qdrant).
+
+```yaml
+---
+title: "En Bref 5 — CSRD : ce que vous devez comprendre"
+source_pdf: "docs/En Bref 5 - CSRD ... Zei.pdf"
+source_url: "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/En%20bref/..."
+category: csrd
+theme_slugs: [csrd]
+applicable_year: 2025
+audience: ["dirigeant", "rse-manager"]
+priority: high
+---
+```
+
+Le contenu utilise `#` / `##` / `###` pour profiter du chunking sémantique du pipeline RAG (`MarkdownHeaderTextSplitter`).
+
+### Catalogue documents ZEI (URLs publiques)
+
+Les 7 documents source de la V2 et leurs URLs publiques sont catalogués dans [PROJECTS.md](PROJECTS.md#v2--knowledge-base-zei-en-cours-de-planification). Cette liste est **la** source de vérité pour le champ `source_url` des frontmatters.
+
+### Convention d'enrichissement des quizzs (V2)
+
+Pour chaque leçon impactée par un document ZEI :
+
+1. Ajouter un bloc `{ type: "callout", variant: "tip", title: "Vu par ZEI", text: "..." }` avec un extrait clé.
+2. Ajouter dans le bloc existant `{ type: "sources", items: [...] }` une entrée `{ label, url }` où `url` est la **`source_url`** du frontmatter (pas un chemin local).
+3. Optionnel : 1-2 questions MCQ supplémentaires basées sur des chiffres / outils / étapes concrètes du guide.
+
+Aucune modification de schéma DB nécessaire — tout passe par les `ContentBlock` déjà supportés par [components/learn/LessonContent.tsx](components/learn/LessonContent.tsx).
+
+### Pipeline RAG (extension Phase 13)
+
+Le script [agent/scripts/ingest_knowledge.py](agent/scripts/ingest_knowledge.py) doit être étendu pour :
+
+- Parser le frontmatter YAML des `.md` (via `python-frontmatter` ou regex).
+- Propager `source_url`, `title`, `theme_slugs`, `applicable_year` dans la metadata Qdrant (en plus de `category`, `source`, `chunk_index` actuels).
+
+### Tool agent RAG
+
+Phase 20 ajoute un tool `search_zei_docs` (ou étend [agent/app/tools/rag/search_knowledge.py](agent/app/tools/rag/search_knowledge.py)) qui :
+
+- Filtre `category in ("csrd", "esg-collecte", "rse-performance", "zei-offre")`.
+- Retourne les chunks pertinents **avec leur `source_url`** dans le payload.
+- Le prompt système ([agent/app/agents/main_prompt.py](agent/app/agents/main_prompt.py)) est mis à jour pour citer la source en fin de réponse au format Markdown link.

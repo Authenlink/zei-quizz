@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useSession } from "next-auth/react";
@@ -173,6 +174,8 @@ function ModulePageInner() {
   const [quizResults, setQuizResults] = useState<QuizResultsData | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const zeiEnrichedViewLastPostedRef = useRef<number | null>(null);
+
   useSetToc([
     ...lessons.map((l) => ({
       id: `lesson-${l.id}`,
@@ -240,6 +243,18 @@ function ModulePageInner() {
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [status, themeSlug, subthemeSlug, moduleSlug]);
+
+  useEffect(() => {
+    if (status !== "authenticated" || !module?.id) return;
+    if (zeiEnrichedViewLastPostedRef.current === module.id) return;
+    zeiEnrichedViewLastPostedRef.current = module.id;
+    void fetch("/api/progress/zei-enriched-view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ moduleId: module.id }),
+    });
+  }, [status, module?.id]);
 
   useEffect(() => {
     if (loading || !module || questions.length === 0) return;

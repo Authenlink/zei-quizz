@@ -17,22 +17,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import type { RagSourceItem } from "@/types/agent";
+import { ZEI_KNOWLEDGE_SUGGESTED_PROMPTS } from "@/lib/zei-knowledge-suggested-prompts";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const SUGGESTED_QUESTIONS = [
-  "Qu'est-ce que la CSRD et qui est concerné ?",
-  "Comment préparer un premier RDV bilan carbone ?",
-  "Quels sont les enjeux RSE pour les PME industrielles ?",
-  "Quelle différence entre bilan carbone et DPEF ?",
-  "Comment qualifier un prospect sur les enjeux CSRD ?",
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -255,7 +246,14 @@ function EmptyState({ onSuggest }: { onSuggest: (q: string) => void }) {
           </div>
         </div>
         <h2 className="text-xl font-bold">Assistant IA CSRD/RSE</h2>
-        <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
+        <Badge
+          variant="secondary"
+          className="mt-3 gap-1 rounded-full px-3 py-1 text-xs font-normal"
+        >
+          <BookOpen className="h-3 w-3" aria-hidden />
+          Boostée par les guides ZEI
+        </Badge>
+        <p className="text-muted-foreground text-sm mt-3 max-w-md mx-auto">
           Votre expert IA spécialisé en CSRD, bilan carbone et RSE. Préparez
           vos rendez-vous, qualifiez vos prospects et répondez aux questions
           de vos clients.
@@ -267,14 +265,15 @@ function EmptyState({ onSuggest }: { onSuggest: (q: string) => void }) {
           <CardTitle className="text-sm">Questions suggérées</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {SUGGESTED_QUESTIONS.map((q) => (
+          {ZEI_KNOWLEDGE_SUGGESTED_PROMPTS.map((q) => (
             <button
               key={q}
+              type="button"
               onClick={() => onSuggest(q)}
-              className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              className="flex min-h-11 items-start gap-2 rounded-lg border px-3 py-2.5 text-sm text-left text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
             >
-              <MessageCircle className="h-3.5 w-3.5 shrink-0" />
-              {q}
+              <MessageCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span className="min-w-0 flex-1">{q}</span>
             </button>
           ))}
         </CardContent>
@@ -477,7 +476,7 @@ export function AssistantChat({
         <div className="mx-auto max-w-2xl">
           {!isEmpty && (
             <div className="mb-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-              {SUGGESTED_QUESTIONS.slice(0, 3).map((q) => (
+              {ZEI_KNOWLEDGE_SUGGESTED_PROMPTS.slice(0, 3).map((q) => (
                 <button
                   key={q}
                   onClick={() => handleSuggest(q)}

@@ -39,7 +39,7 @@ const internalNavItems = [
   },
   {
     title: "Mon compte",
-    url: "/profile",
+    url: "/portal/profile",
     icon: User,
   },
 ];

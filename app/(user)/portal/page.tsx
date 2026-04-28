@@ -84,43 +84,41 @@ function PortalDashboardSkeleton() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="min-h-[280px] overflow-hidden lg:col-span-1">
-          <CardHeader className="pb-0">
+      <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+        <Card className="flex min-h-[280px] flex-col overflow-hidden lg:col-span-1">
+          <CardHeader className="shrink-0 pb-0">
             <Skeleton className="h-5 w-40" />
           </CardHeader>
-          <CardContent className="flex flex-col items-center pb-4 pt-4">
+          <CardContent className="flex flex-1 flex-col items-center justify-center pb-4 pt-4">
             <Skeleton className="aspect-square h-[200px] max-h-[220px] w-full max-w-[220px] rounded-full" />
           </CardContent>
         </Card>
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-5 w-48" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex justify-between gap-2">
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-8" />
-                  </div>
-                  <Skeleton className="h-2 w-full rounded-full" />
+        <Card className="min-h-[280px] lg:col-span-2">
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between gap-2">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-3 w-8" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-5 w-56" />
-              <Skeleton className="h-3 w-full max-w-md" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Skeleton className="h-4 w-full max-w-md" />
-              <Skeleton className="h-9 w-full max-w-xs" />
-            </CardContent>
-          </Card>
-        </div>
+                <Skeleton className="h-2 w-full rounded-full" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+        <Card className="min-w-0 lg:col-span-3">
+          <CardHeader>
+            <Skeleton className="h-5 w-56" />
+            <Skeleton className="h-3 w-full max-w-md" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full max-w-md" />
+            <Skeleton className="h-9 w-full max-w-xs sm:max-w-xs" />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -300,17 +298,26 @@ export default function PortalHomePage() {
                 totalModules={progress.totalModules}
                 averageScore={progress.averageScore}
                 totalAttempts={progress.totalAttempts}
+                zeiEnrichedModulesConsulted={
+                  progress.zeiEnrichedModulesConsulted
+                }
                 themes={progress.themes}
               />
 
-              <div className="grid gap-6 lg:grid-cols-3">
-                <div className="lg:col-span-1">
+              <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+                <div className="min-h-0 lg:col-span-1">
                   <ProgressRing
+                    className="w-full"
                     globalProgressPercent={progress.globalProgressPercent}
                   />
                 </div>
-                <div className="space-y-6 lg:col-span-2">
-                  <ThemeProgressBar themes={progress.themes} />
+                <div className="min-h-0 lg:col-span-2">
+                  <ThemeProgressBar
+                    className="w-full"
+                    themes={progress.themes}
+                  />
+                </div>
+                <div className="min-w-0 lg:col-span-3">
                   <RecommendedModuleCard
                     recommendedModule={progress.recommendedModule}
                   />

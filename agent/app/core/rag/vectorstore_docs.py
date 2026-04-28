@@ -18,6 +18,7 @@ Stratégie de recherche : hybride 2 phases (guide ch. 16)
 """
 
 import logging
+import uuid
 from uuid import uuid4
 
 from qdrant_client import models
@@ -39,6 +40,11 @@ COLLECTION_NAME = COLLECTION_KNOWLEDGE  # Alias par défaut pour search_docs()
 DENSE_SIZE = 3072       # text-embedding-3-large
 MIN_SCORE = 0.30        # Seuil minimum de pertinence (ajuster si trop de faux positifs)
 _PRIORITY_WEIGHT = {"High": 3, "Medium": 2, "Low": 1}
+
+
+def payload_document_url(payload: dict) -> str:
+    """URL publique du chunk : source_url (guides ZEI) puis url (legacy)."""
+    return (payload.get("source_url") or payload.get("url") or "").strip()
 
 
 # ---------------------------------------------------------------------------
@@ -218,7 +224,7 @@ def _format_results(points: list) -> str:
 
         category = payload.get("category", "")
         source = payload.get("source", "")
-        url = payload.get("url", "")
+        url = payload_document_url(payload)
 
         header = f"[{category}] {source}"
         if url:
@@ -233,17 +239,26 @@ def _format_results(points: list) -> str:
 # Pipeline d'ingestion — partagé entre les deux collections
 # ---------------------------------------------------------------------------
 
-def _create_collection_base(collection_name: str, payload_fields: list[str]) -> None:
+def _create_collection_base(
+    collection_name: str,
+    payload_fields: list[str],
+    *,
+    recreate: bool = True,
+) -> None:
     """
-    Crée une collection avec dense 3072 + BM25 sparse.
-    Supprime uniquement la collection portant ce nom exact si elle existe.
-    Index payload créés AVANT l'upsert (recommandé guide ch. 13.5).
+    Crée une collection dense 3072 + BM25.
 
-    Supprime uniquement la collection portant le nom exact si elle existe.
+    recreate=True  : supprime l'existant puis recrée.
+    recreate=False : si la collection existe, ne rien faire ; sinon la crée.
     """
     client = get_qdrant_client()
+    exists = client.collection_exists(collection_name)
 
-    if client.collection_exists(collection_name):
+    if exists and not recreate:
+        logger.info(f"Collection '{collection_name}' déjà présente — aucune réinitialisation.")
+        return
+
+    if exists and recreate:
         client.delete_collection(collection_name)
         logger.info(f"Collection '{collection_name}' supprimée (full rebuild)")
 
@@ -273,24 +288,87 @@ def _create_collection_base(collection_name: str, payload_fields: list[str]) -> 
 
 
 def create_knowledge_collection() -> None:
-    """Crée knowledge_docs — base documentaire générale."""
+    """Recrée knowledge_docs from scratch (supprime l'existant)."""
     _create_collection_base(
         COLLECTION_KNOWLEDGE,
         payload_fields=["category", "source", "doc_type", "priority", "keywords"],
+        recreate=True,
     )
+
+
+def ensure_knowledge_collection() -> None:
+    """Crée knowledge_docs si elle n'existe pas. Ne supprime jamais une collection existante."""
+    _create_collection_base(
+        COLLECTION_KNOWLEDGE,
+        payload_fields=["category", "source", "doc_type", "priority", "keywords"],
+        recreate=False,
+    )
+
+
+def delete_knowledge_points_for_sources(
+    category_source_pairs: list[tuple[str, str]],
+) -> None:
+    """
+    Supprime tous les points dont le couple (category, source) est dans la liste.
+    Utilisé avant un ré-ingest incrémental pour remplacer les chunks d'un même fichier .md.
+    """
+    if not category_source_pairs:
+        return
+    client = get_qdrant_client()
+    if not client.collection_exists(COLLECTION_KNOWLEDGE):
+        return
+
+    for category, source in category_source_pairs:
+        flt = models.Filter(
+            must=[
+                models.FieldCondition(
+                    key="category",
+                    match=models.MatchValue(value=category),
+                ),
+                models.FieldCondition(
+                    key="source",
+                    match=models.MatchValue(value=source),
+                ),
+            ]
+        )
+        client.delete(
+            collection_name=COLLECTION_KNOWLEDGE,
+            points_selector=models.FilterSelector(filter=flt),
+        )
+        logger.info(f"  Points supprimés pour [{category}] {source}")
+
+
+def stable_knowledge_point_id(
+    collection_name: str,
+    category: str,
+    source: str,
+    chunk_index: int,
+) -> str:
+    """ID déterministe pour upserts idempotents (évite les doublons logiques)."""
+    key = f"{collection_name}\0{category}\0{source}\0{chunk_index}"
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, key))
 
 
 def create_helpdesk_collection() -> None:
-    """Crée helpdesk — articles du centre d'aide."""
+    """Recrée helpdesk from scratch."""
     _create_collection_base(
         COLLECTION_HELPDESK,
         payload_fields=["keywords", "sub_category", "title"],
+        recreate=True,
     )
 
 
-def upsert_chunks(collection_name: str, chunks: list[dict], batch_size: int = 32) -> int:
+def upsert_chunks(
+    collection_name: str,
+    chunks: list[dict],
+    batch_size: int = 32,
+    *,
+    deterministic_ids: bool = False,
+) -> int:
     """
     Génère les embeddings dense (OpenAI API) + BM25 (FastEmbed local) et upsert par batch.
+
+    deterministic_ids=True : ID stable par (category, source, chunk_index) pour fusion sans doublons.
 
     Format attendu pour chaque chunk :
         {
@@ -332,9 +410,19 @@ def upsert_chunks(collection_name: str, chunks: list[dict], batch_size: int = 32
         points = []
         for i, chunk in enumerate(batch):
             sparse_emb = sparse_embeddings[i]
+            meta = chunk.get("metadata", {})
+            if deterministic_ids:
+                pid = stable_knowledge_point_id(
+                    collection_name,
+                    meta.get("category", ""),
+                    meta.get("source", ""),
+                    int(meta.get("chunk_index", 0)),
+                )
+            else:
+                pid = str(uuid4())
             points.append(
                 models.PointStruct(
-                    id=str(uuid4()),
+                    id=pid,
                     vector={
                         "dense": dense_vectors[i],
                         "bm25": models.SparseVector(

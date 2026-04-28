@@ -31,6 +31,7 @@ type ContentBlock =
       variant: "info" | "warning" | "tip" | "important";
       title?: string;
       text: string;
+      sourceLinks?: { label: string; url: string }[];
     }
   | { type: "table"; headers: string[]; rows: string[][] }
   | { type: "divider" }
@@ -70,6 +71,18 @@ const SRC = {
     "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000005627565",
   EC_SF_STRATEGY:
     "https://finance.ec.europa.eu/sustainable-finance/overview/sustainable-finance-strategy_en",
+};
+
+/** Documents Zei — URLs alignées sur docs/zei-knowledge/INDEX.md */
+const ZEI_KB = {
+  EN_BREF_5_CSRD:
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/En%20bref/En%20Bref%205%20-%20CSRD%2c%20ce%20que%20vous%20devez%20comprendre%20avant%20vos%20concurrents%20pour%20rester%20comp%C3%A9titifs%20-%20Zei.pdf",
+  VSME_LANGAGE_COMMUN:
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20La%20VSME%20expliqu%C3%A9e%20-%20Le%20nouveau%20langage%20commun%20de%20la%20donn%C3%A9es%20ESG%20en%20Europe.pdf",
+  RSE_2025_PERFORMANCE:
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20En%202025%20comment%20passer%20%C3%A0%20une%20RSE%20de%20performance%20%3F.pdf",
+  PROPOSITION_PORTALP:
+    "https://docs.google.com/presentation/d/1Z_OuSEaTGMupYV79TdMVqXObXSgxlJF1ouojGd9hLB4/edit",
 };
 
 function withSources(
@@ -630,6 +643,139 @@ async function seedRseMarketing() {
     ],
   });
 
+  await seedModuleQuick(st1, {
+    slug: "rm-communication-intentions-vers-preuves",
+    title: "De la communication d’intentions à la communication de preuves",
+    description:
+      "Passer des effets d’annonce à des faits traçables : exigence des parties prenantes, crédibilité et intégration des données ESG dans le pilotage.",
+    order: 3,
+    estimatedMinutes: 16,
+    difficulty: "intermediaire",
+    lesson1Title: "Preuves, pas seulement intentions",
+    lesson1Content: withSources(
+      [
+        { type: "heading", level: 2, text: "Les parties prenantes demandent des faits" },
+        {
+          type: "paragraph",
+          text: "La montée des exigences réglementaires renforce aussi la crédibilité vis-à-vis des parties prenantes : pouvoir démontrer sa conformité à des standards reconnus rassure. Les acteurs économiques — clients, investisseurs, partenaires financiers ou publics — exigent de plus en plus des preuves : transparence, comparabilité, garanties sur la qualité des données.",
+        },
+        {
+          type: "paragraph",
+          text: "Il ne s’agit plus seulement de « prouver que l’on fait », mais de démontrer que ce que l’on fait est efficace. Cette exigence de preuve change le dialogue entre équipes RSE et directions métiers.",
+        },
+        {
+          type: "paragraph",
+          text: "Robin Moysset (Sustainability Performance Reporting Manager Lead, Danone), dans le livre blanc Zei « En 2025, comment passer à une RSE de performance ? », indique notamment : « Afin d’en garantir la cohérence, les données ESG seront désormais intégrées dans les outils de reporting financier afin de renforcer la coopération entre les contrôleurs de gestion, la communauté RH et les référents RSE localement. Cela participe à la crédibilité du sujet comme outil d’arbitrage dans l’orientation de la stratégie à tous les niveaux. »",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Le marketing et la com doivent s’appuyer sur le même socle que la finance et le reporting : indicateurs, périmètre, actualisation. C’est le passage d’une logique d’image à une logique d’efficacité documentée, comme le décrit le livre blanc RSE 2025 Zei.",
+        },
+      ],
+      [{ label: "Zei — RSE de performance 2025 (PDF)", url: ZEI_KB.RSE_2025_PERFORMANCE }]
+    ),
+    lesson2Title: "Crédibilité : réussites, limites, amélioration continue",
+    lesson2Content: withSources(
+      [
+        { type: "heading", level: 2, text: "Fonder la crédibilité sur des faits" },
+        {
+          type: "paragraph",
+          text: "À l’horizon considéré dans le livre blanc, la crédibilité des démarches RSE reposera de plus en plus sur leur capacité à démontrer des résultats concrets. Les effets d’annonce ou les engagements généraux ne suffisent plus : les entreprises sont attendues sur des preuves de mise en œuvre, de résultats et d’impact.",
+        },
+        {
+          type: "paragraph",
+          text: "Cette évaluation exige des méthodes solides et une capacité à accepter la transparence — montrer les réussites, mais aussi les limites et les ajustements. La logique d’amélioration continue fonde la crédibilité sur des faits, pas sur des intentions.",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Chaque campagne ou message public peut citer la méthode (norme, périmètre, année) et renvoyer vers le même socle de données que le rapport de durabilité : c’est l’alignement marketing / preuves que les lecteurs Zei cherchent quand ils comparent discours et documents.",
+        },
+      ],
+      [
+        { label: "Zei — RSE de performance 2025 (PDF)", url: ZEI_KB.RSE_2025_PERFORMANCE },
+        { label: "Commission européenne — Green claims", url: SRC.EC_GREEN_CLAIMS },
+      ]
+    ),
+    questions: [
+      qq(
+        "Selon le livre blanc Zei RSE 2025, clients, investisseurs et partenaires publics exigent notamment :",
+        "Transparence, comparabilité et fiabilité des informations.",
+        "Des preuves, de la transparence et des garanties sur la qualité des données",
+        ["Uniquement des intentions affichées", "L’absence de reporting", "Uniquement des photos de terrain"],
+        2,
+        "debutant",
+        0
+      ),
+      qq(
+        "L’exigence « il ne s’agit plus seulement de prouver que l’on fait » vise surtout à :",
+        "Démontrer l’efficacité des actions, pas seulement leur existence.",
+        "Démontrer que ce que l’on fait est efficace",
+        ["Supprimer le reporting", "Éviter les audits", "Remplacer la finance"],
+        2,
+        "intermediaire",
+        0
+      ),
+      qq(
+        "Robin Moysset (Danone) relie l’intégration des données ESG aux outils de reporting financier à :",
+        "La crédibilité du sujet et le rôle d’arbitrage dans la stratégie.",
+        "La crédibilité comme outil d’arbitrage pour l’orientation de la stratégie",
+        ["La suppression des indicateurs RH", "L’exemption CSRD", "Uniquement le marketing digital"],
+        2,
+        "intermediaire",
+        1
+      ),
+      qq(
+        "La crédibilité des démarches RSE repose de plus en plus sur :",
+        "Des résultats concrets et démontrables.",
+        "La capacité à démontrer des résultats concrets (mise en œuvre, résultats, impact)",
+        ["Uniquement des slogans", "L’absence de transparence", "Des engagements généraux sans suite"],
+        2,
+        "debutant",
+        1
+      ),
+      qq(
+        "Montrer les limites et les ajustements dans la communication sert notamment à :",
+        "Fonder la crédibilité sur des faits et l’amélioration continue.",
+        "Accepter la transparence et ancrer la crédibilité sur des faits, pas des intentions",
+        ["Masquer les échecs", "Supprimer le dialogue interne", "Éviter toute mesure"],
+        2,
+        "avance",
+        null
+      ),
+      qq(
+        "Les Sustainability-Linked Loans (SLL) illustrent selon le livre blanc que :",
+        "Le coût de la dette peut être lié à la performance durable.",
+        "La capacité à produire un reporting robuste devient un enjeu financier",
+        ["La dette est interdite aux entreprises RSE", "Les banques ignorent l’ESG", "Seules les PME sont concernées"],
+        2,
+        "intermediaire",
+        null
+      ),
+      qq(
+        "L’auditabilité des données ESG, y compris sur les données qualitatives, devient :",
+        "Un objectif explicite dans les organisations avancées.",
+        "Un objectif explicite, y compris pour les données qualitatives",
+        ["Secondaire par rapport au marketing", "Réservé au bilan carbone produit", "Interdit par la CSRD"],
+        2,
+        "avance",
+        null
+      ),
+      qq(
+        "Pour le marketing, l’alignement avec les preuves évoqué par Zei implique surtout de :",
+        "Renvoyer vers les mêmes méthodes et données que le reporting.",
+        "Citer méthode, périmètre et actualisation cohérents avec le rapport de durabilité",
+        ["Supprimer les KPI", "Éviter tout lien avec la finance", "Ne communiquer qu’en interne"],
+        3,
+        "intermediaire",
+        null
+      ),
+    ],
+  });
+
   // ——— 2. Labels et certifications ———
   const st2 = await getOrCreateSubtheme({
     themeId,
@@ -1169,6 +1315,16 @@ async function seedRseMarketing() {
           text: "Site carrières, avis en ligne, médias sociaux, entretiens : les signaux doivent converger. Les principes de responsabilité sociétale (ISO 26000) incluent des thématiques « conditions et relations de travail » et « pratiques loyales » utiles pour structurer le discours employeur.",
         },
         {
+          type: "paragraph",
+          text: "Des travaux cités dans la littérature Zei illustrent l’enjeu : selon une étude menée par Cone Communications, 55 % des collaborateurs déclarent que l’engagement RSE d’une entreprise est un critère plus important que le salaire ; deux tiers des jeunes déclarent ne pas vouloir travailler pour une entreprise sans stratégie RSE solide ou au sens fort. Côté consommateurs, une étude de l’ADEME menée en 2019 indique que 80 % des Français ont déjà changé leurs habitudes pour consommer plus durablement. Parmi les grandes entreprises et ETI, 62 % ont fixé un objectif de neutralité carbone incluant les achats — un signal pour les marques employeurs en B2B.",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Pour la marque employeur, traitez la RSE comme une promesse vérifiable : les mêmes chiffres et exemples doivent tenir sur le site carrières, dans les entretiens et dans vos indicateurs internes. Les guides Zei « En Bref 5 — CSRD » et « VSME » recensent ces ordres de grandeur pour ancrer le discours dans des références publiées.",
+        },
+        {
           type: "list",
           style: "bullet",
           items: [
@@ -1179,6 +1335,8 @@ async function seedRseMarketing() {
         },
       ],
       [
+        { label: "Zei — En Bref 5 — CSRD (PDF)", url: ZEI_KB.EN_BREF_5_CSRD },
+        { label: "Zei — La VSME expliquée (PDF)", url: ZEI_KB.VSME_LANGAGE_COMMUN },
         { label: "ISO — ISO 26000", url: SRC.ISO_26000 },
         { label: "OCDE — Lignes directrices entreprises multinationales", url: SRC.OECD_MNE },
       ]
@@ -1192,13 +1350,26 @@ async function seedRseMarketing() {
           text: "Surligner des avantages « bien-être » sans budget ni indicateurs expose à la déception des nouvelles recrues et aux avis négatifs. Le marketing RH doit s’appuyer sur des politiques documentées et des objectifs mesurables.",
         },
         {
+          type: "paragraph",
+          text: "Côté coût et marchés, le livre blanc Zei sur la VSME rappelle que 13 340 € représente le coût annuel estimé d’un·e salarié·e non motivé·e pour l’entreprise, et que 15 % de la notation des appels d’offres repose sur des critères ESG — utile pour aligner discours employeur et enjeux commerciaux.",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Reliez marque employeur et dossiers clients ou AO : une même base de données ESG alimente les réponses aux questionnaires fournisseurs et la crédibilité du discours RH. Source chiffrée : livre blanc « La VSME expliquée ».",
+        },
+        {
           type: "callout",
           variant: "tip",
           title: "Preuve sociale",
           text: "Mettre en avant des parcours internes réels, des certifications de compétences et des accords d’entreprise plutôt que des slogans génériques.",
         },
       ],
-      [{ label: "Nations unies — Global Compact", url: SRC.UN_GC }]
+      [
+        { label: "Zei — La VSME expliquée (PDF)", url: ZEI_KB.VSME_LANGAGE_COMMUN },
+        { label: "Nations unies — Global Compact", url: SRC.UN_GC },
+      ]
     ),
     questions: [
       qq(
@@ -1300,8 +1471,18 @@ async function seedRseMarketing() {
             ["Salons emploi", "Rencontre managériale", "Promesses non tenues sur place"],
           ],
         },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Les études citées dans « En Bref 5 — CSRD » et « La VSME expliquée » vont dans le même sens : sens au travail, attentes sur les achats durables et barèmes ESG dans les AO. Calibrez vos campagnes employeur sur des faits vérifiables (rapports, labels, indicateurs), pas sur des envolées isolées du reporting.",
+        },
       ],
-      [{ label: "ISO — ISO 26000", url: SRC.ISO_26000 }]
+      [
+        { label: "Zei — En Bref 5 — CSRD (PDF)", url: ZEI_KB.EN_BREF_5_CSRD },
+        { label: "Zei — La VSME expliquée (PDF)", url: ZEI_KB.VSME_LANGAGE_COMMUN },
+        { label: "ISO — ISO 26000", url: SRC.ISO_26000 },
+      ]
     ),
     lesson2Title: "Mesurer l’attractivité au-delà des clics",
     lesson2Content: withSources(
@@ -1431,10 +1612,21 @@ async function seedRseMarketing() {
           title: "Pour l’offrant",
           text: "Relisez précisément les critères pondérés : chaque promesse doit être démontrable dans le mémoire technique et, le cas échéant, par des attestations ou labels admis par le cahier des charges.",
         },
+        {
+          type: "paragraph",
+          text: "Le livre blanc Zei « La VSME expliquée » indique que 15 % de la notation des appels d’offres est basée sur des critères ESG — une pondération à avoir en tête lors de la lecture du règlement de consultation.",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Préparez vos preuves comme une bibliothèque réutilisable : mêmes données pour bilan carbone, questionnaires fournisseurs et critères ESG du dossier — le même raisonnement que dans les exemples Zei de mise en cohérence multi-référentiels.",
+        },
       ],
       [
         { label: "EUR-Lex — Directive 2014/24/UE (marchés publics classiques)", url: SRC.EUR_LEX_CLASSIC_DIR },
         { label: "Commission européenne — Marchés publics", url: SRC.EU_PROCUREMENT },
+        { label: "Zei — La VSME expliquée (PDF)", url: ZEI_KB.VSME_LANGAGE_COMMUN },
       ]
     ),
     lesson2Title: "Spécifications techniques et preuves acceptables",
@@ -1558,8 +1750,20 @@ async function seedRseMarketing() {
           title: "Greenwashing dans un AO",
           text: "Des allégations non sourcées peuvent coûter la note sur le critère « qualité technique » et nuire à votre réputation auprès des acheteurs sectoriels.",
         },
+        {
+          type: "paragraph",
+          text: "Exemple de cadrage Zei (proposition commerciale type « Portalp France ») : renouveler un bilan carbone après un exercice réalisé sur une autre calculette ; collecter la donnée auprès des fournisseurs pour identifier des leviers de décarbonation ; viser une progression d’évaluation EcoVadis (Silver vers Gold en 2027 dans le cas documenté) ; produire un rapport RSE personnalisé sur une même plateforme d’ici une échéance fixée (2028 dans le document). Chaque point correspond à des preuves et livrables distincts dans un mémoire.",
+        },
+        {
+          type: "callout",
+          variant: "tip",
+          title: "Vu par ZEI",
+          text: "Réutilisez les mêmes jeux de données que pour vos référentiels volontaires : indicateurs déjà consolidés, pièces EcoVadis et traces de collecte fournisseurs nourrissent un mémoire sans double langage. L’exemple Portalp dans les slides Zei illustre ce lien entre outillage et réponses aux exigences clients ou AO.",
+        },
       ],
       [
+        { label: "Zei — Exemple proposition Portalp France (Slides)", url: ZEI_KB.PROPOSITION_PORTALP },
+        { label: "Zei — La VSME expliquée (PDF)", url: ZEI_KB.VSME_LANGAGE_COMMUN },
         { label: "Commission européenne — Green claims", url: SRC.EC_GREEN_CLAIMS },
         { label: "ISO — ISO 26000", url: SRC.ISO_26000 },
       ]

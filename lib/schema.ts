@@ -59,7 +59,7 @@ export const users = pgTable("users", {
   // "admin" → accès complet (back-office + portail)
   // "staff" → équipe interne / back-office uniquement
   // "user"  → utilisateurs du portail (ex-partenaires) uniquement
-  role: text("role").$type<"admin" | "staff" | "user">().notNull().default("staff"),
+  role: text("role").$type<"admin" | "staff" | "user">().notNull().default("user"),
 
   // Workspace (comptes entreprise) — null pour les comptes personnels
   workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
@@ -300,3 +300,24 @@ export const userAchievements = pgTable("user_achievements", {
   earnedAt: timestamp("earned_at").defaultNow().notNull(),
   metadata: jsonb("metadata").$type<Record<string, unknown>>(),
 });
+
+/** Première ouverture d’un module enrichi ZEI (callout « Vu par ZEI » ou leçon zei_spotlight). */
+export const userZeiEnrichedModuleViews = pgTable(
+  "user_zei_enriched_module_views",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    moduleId: integer("module_id")
+      .notNull()
+      .references(() => quizModules.id, { onDelete: "cascade" }),
+    firstViewedAt: timestamp("first_viewed_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_zei_enriched_module_views_unique").on(
+      table.userId,
+      table.moduleId,
+    ),
+  ]
+);

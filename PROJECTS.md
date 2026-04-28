@@ -253,6 +253,66 @@ Chaque thème est livrable et testable indépendamment dès sa complétion.
 - Mode "équipe" : progression collective d'un workspace
 - Classement (leaderboard) interne ZEI
 - Certification téléchargeable à la complétion d'un thème
-- Intégration de l'agent IA existant pour répondre aux questions sur les modules
 - Notifications email de rappel si l'utilisateur est inactif depuis 7 jours
 - Export PDF du rapport de formation par utilisateur
+
+---
+
+## V2 — Knowledge Base ZEI (en cours de planification)
+
+La V1 a été seedée à partir de sources publiques (web, sites institutionnels). La V2 vise à **réinjecter dans tous les quizzs la documentation officielle de ZEI** et à brancher cette même base sur l'agent IA `/agent` via un RAG (Qdrant, infra déjà en place dans `agent/`).
+
+### Objectifs V2
+
+1. Tous les quizzs citent et exploitent les guides officiels ZEI (callouts « Vu par ZEI » + sources)
+2. L'assistant IA `/agent` répond aux questions des utilisateurs en s'appuyant sur les mêmes documents (RAG)
+3. Les contenus restent vérifiables : chaque source pointe vers son URL publique (Hubspot CDN ou Google Slides)
+
+### Approche
+
+- **Conversion PDF/Slides → Markdown** dans `docs/zei-knowledge/<categorie>/*.md` (avec frontmatter YAML)
+- Un fichier `docs/zei-knowledge/INDEX.md` cartographie chaque document → quels thèmes/modules enrichir
+- Symlink ou copie vers `agent/rag/documents/zei/` pour ingestion Qdrant via `agent/scripts/ingest_knowledge.py`
+- Refonte incrémentale **un thème à la fois** via `--reset` des `scripts/seed-*.ts` existants
+
+### Catalogue des documents source ZEI
+
+| # | Document | Format | URL publique |
+|---|---|---|---|
+| 1 | Exemple Proposition Zei — Portalp France | Google Slides | [docs.google.com/presentation/d/1wjcbhDCM6tlBW0fIWQ1O36DLTRlJ6u6eV6NVHxFTWuA](https://docs.google.com/presentation/d/1wjcbhDCM6tlBW0fIWQ1O36DLTRlJ6u6eV6NVHxFTWuA/edit) |
+| 2 | Zei — Plaquette synthétique 2026 | Google Slides | [docs.google.com/presentation/d/1aeOHcN3LXL8z3U8oRkZsYktFwCxGrX4jPzQAN2G8ff8](https://docs.google.com/presentation/d/1aeOHcN3LXL8z3U8oRkZsYktFwCxGrX4jPzQAN2G8ff8/edit) |
+| 3 | Zei — Checklist Faites le point sur votre collecte ESG | PDF | [Hubspot CDN](https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Lead%20Magnets/Zei%20-%20Checklist%20Faites%20le%20point%20sur%20votre%20collecte%20ESG.pdf) |
+| 4 | Guide Zei — Collecte ESG : arrêtez de bricoler, commencez à piloter | PDF | [Hubspot CDN](https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Guide%20Zei%20-%20Collecte%20ESG%20%20arr%C3%AAtez%20de%20bricoler%2c%20commencez%20%C3%A0%20piloter.pdf) |
+| 5 | Zei — La VSME expliquée | PDF | [Hubspot CDN](https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20La%20VSME%20expliqu%C3%A9e%20-%20Le%20nouveau%20langage%20commun%20de%20la%20donn%C3%A9es%20ESG%20en%20Europe.pdf) |
+| 6 | Zei — En 2025 comment passer à une RSE de performance ? | PDF | [Hubspot CDN](https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20En%202025%20comment%20passer%20%C3%A0%20une%20RSE%20de%20performance%20%3F.pdf) |
+| 7 | En Bref 5 — CSRD, ce que vous devez comprendre avant vos concurrents | PDF | [Hubspot CDN](https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/En%20bref/En%20Bref%205%20-%20CSRD%2c%20ce%20que%20vous%20devez%20comprendre%20avant%20vos%20concurrents%20pour%20rester%20comp%C3%A9titifs%20-%20Zei.pdf) |
+
+> Statut : 5 PDFs présents dans `docs/`. Les 2 Google Slides seront ajoutés (export PDF) avant de démarrer la conversion en Markdown.
+
+### Couverture documents ↔ thèmes
+
+| Document | Thèmes principalement enrichis |
+|---|---|
+| Proposition Portalp | RSE & Marketing (cas client), ZEI & RSE |
+| Plaquette synthétique 2026 | ZEI & RSE (mission/offre), Obligations 2025-2026 |
+| Checklist Collecte ESG | ESG, ZEI & RSE |
+| Guide Collecte ESG | ESG, ZEI & RSE |
+| VSME expliquée | CSRD, Obligations 2025-2026 |
+| RSE de performance | RSE, RSE & Marketing |
+| En Bref 5 — CSRD | CSRD |
+
+### Phasage incrémental V2
+
+Voir [STEPS.md](STEPS.md) — Phases 13 à 21 :
+
+1. **Phase 13** — Setup knowledge base (conversion + INDEX + sync agent)
+2. **Phase 14** — Refonte CSRD
+3. **Phase 15** — Refonte ESG
+4. **Phase 16** — Refonte ZEI & RSE
+5. **Phase 17** — Refonte Obligations 2025-2026
+6. **Phase 18** — Refonte RSE & Marketing
+7. **Phase 19** — Refresh transversal RSE
+8. **Phase 20** — Branchement RAG dans l'agent IA runtime
+9. **Phase 21** — UX (suggestions de questions /agent, liens sources)
+
+Chaque phase est livrable et testable indépendamment.

@@ -1,3 +1,4 @@
+import { resolveZeiCalloutSourceLinks } from "@/lib/zei-callout-resolve-links";
 import { cn } from "@/lib/utils";
 import { RegulatoryBadge } from "./RegulatoryBadge";
 import { YearTag } from "./YearTag";
@@ -15,6 +16,8 @@ export type ContentBlock =
       variant: "info" | "warning" | "tip" | "important";
       title?: string;
       text: string;
+      /** Liens PDF / Slides (INDEX ZEI) — optionnel ; sinon résolution pour « Vu par ZEI ». */
+      sourceLinks?: { label: string; url: string }[];
     }
   | {
       type: "table";
@@ -98,6 +101,7 @@ function RenderBlock({ block }: { block: ContentBlock }) {
 
     case "callout": {
       const style = CALLOUT_STYLES[block.variant] ?? CALLOUT_STYLES.info;
+      const zeiLinks = resolveZeiCalloutSourceLinks(block);
       return (
         <div className={cn("rounded-md border p-4 space-y-1", style.container)}>
           {block.title ? (
@@ -109,6 +113,27 @@ function RenderBlock({ block }: { block: ContentBlock }) {
             {!block.title && `${style.icon} `}
             {block.text}
           </p>
+          {zeiLinks.length > 0 ? (
+            <div className="mt-2 border-t border-border/50 pt-2">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Source ZEI
+              </p>
+              <ul className="mt-1 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-3 sm:gap-y-1">
+                {zeiLinks.map((item) => (
+                  <li key={item.url} className="text-xs">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline underline-offset-2 hover:opacity-80 break-all"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       );
     }

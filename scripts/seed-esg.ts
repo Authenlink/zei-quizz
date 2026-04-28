@@ -31,6 +31,7 @@ type ContentBlock =
       variant: "info" | "warning" | "tip" | "important";
       title?: string;
       text: string;
+      sourceLinks?: { label: string; url: string }[];
     }
   | { type: "table"; headers: string[]; rows: string[][] }
   | { type: "divider" }
@@ -279,6 +280,25 @@ async function seedESG() {
 
   console.log("🌱 Démarrage du seed ESG...\n");
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Sources ZEI (Phase 15) — URLs publiques Hubspot CDN à citer dans les blocs
+  // `sources` des leçons enrichies. Ne jamais tronquer ces URLs.
+  //
+  // Cf. docs/zei-knowledge/esg-collecte/*.md (frontmatter `source_url`).
+  // ═══════════════════════════════════════════════════════════════════════════
+  const GUIDE_URL =
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Guide%20Zei%20-%20Collecte%20ESG%20%20arr%C3%AAtez%20de%20bricoler%2c%20commencez%20%C3%A0%20piloter.pdf";
+  const GUIDE_LABEL =
+    "ZEI — Guide Collecte ESG : arrêtez de bricoler, commencez à piloter (PDF)";
+  const CHECKLIST_URL =
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Lead%20Magnets/Zei%20-%20Checklist%20Faites%20le%20point%20sur%20votre%20collecte%20ESG.pdf";
+  const CHECKLIST_LABEL =
+    "ZEI — Checklist : Faites le point sur votre collecte ESG (PDF)";
+  const VSME_URL =
+    "https://4495458.fs1.hubspotusercontent-na1.net/hubfs/4495458/Livres%20blancs/Zei%20-%20La%20VSME%20expliqu%C3%A9e%20-%20Le%20nouveau%20langage%20commun%20de%20la%20donn%C3%A9es%20ESG%20en%20Europe.pdf";
+  const VSME_LABEL =
+    "ZEI — La VSME expliquée : le nouveau langage commun de la donnée ESG (PDF)";
+
   const themeId = await getOrCreateTheme({
     slug: "esg",
     title: "ESG — Environnement, Social et Gouvernance",
@@ -336,6 +356,14 @@ async function seedESG() {
     description:
       "Réglementation européenne (SFDR, taxonomie), stratégies d’investissement et dialogue avec les entreprises.",
     order: 6,
+  });
+  const stCollecte = await getOrCreateSubtheme({
+    themeId,
+    slug: "esg-collecte-pilotage",
+    title: "Collecte ESG : arrêtez de bricoler, commencez à piloter",
+    description:
+      "Industrialiser la collecte ESG comme socle du pilotage : audit de la dette technique, gouvernance triptyque (Contributeur / Valideur / Administrateur), audit trail OTI et checklist post-collecte selon ZEI.",
+    order: 7,
   });
 
   // ——— Pilier E ———
@@ -917,12 +945,20 @@ async function seedESG() {
         text: "Les marchés sanctionnent l’opacité sur la rémunération variable liée au durable si les critères ne sont pas vérifiables.",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Avec la CSRD, les rapports ESG sont audités par des commissaires aux comptes ou organismes tiers indépendants (OTI). La piste d'audit fiable est la colonne vertébrale de la crédibilité : chaque indicateur consolidé doit pouvoir être dé-tricoté jusqu'à l'unité de mesure initiale. Trois piliers selon ZEI — horodatage immuable, traçabilité des auteurs (« qui a modifié quoi »), motif de modification obligatoire en commentaire. Source : ZEI — Guide collecte ESG (chap. IV).",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "Autorité des marchés financiers (AMF) — gouvernance et information",
             url: "https://www.amf-france.org/",
           },
+          { label: GUIDE_LABEL, url: GUIDE_URL },
         ],
       },
     ],
@@ -998,6 +1034,19 @@ async function seedESG() {
         1,
         "debutant",
         null
+      ),
+      q(
+        "Selon ZEI, sur quels trois piliers repose la piste d'audit ESG attendue par un OTI (organisme tiers indépendant) ?",
+        "ZEI identifie trois piliers d'audit trail : horodatage immuable de chaque saisie, traçabilité des auteurs (« qui a modifié quoi »), et motif de modification obligatoire en cas de correction d'une donnée historique (source : ZEI — Guide collecte ESG, §IV.2).",
+        "Horodatage immuable, traçabilité des auteurs, motif de modification",
+        [
+          "Antivirus, sauvegarde quotidienne et chiffrement des disques",
+          "ISO 27001 + ISO 9001 + ISO 14001",
+          "Mot de passe, double authentification et VPN",
+        ],
+        3,
+        "avance",
+        1
       ),
     ],
   });
@@ -1141,12 +1190,20 @@ async function seedESG() {
         text: "MSCI évalue la résilience d’une entreprise aux risques et opportunités ESG financièrement pertinents pour son industrie (notation AAA à CCC). L’approche est comparative aux pairs du même sous-secteur GICS.",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Au-delà du score, c'est la qualité de la collecte qui rend la note crédible : aujourd'hui une direction RSE passe en moyenne 80 % de son temps à collecter la donnée (relances, nettoyage de fichiers, vérification des unités) et seulement 20 % à l'analyser et à piloter. Sans industrialisation, le rating ESG s'appuie sur une matière première fragile. Source : ZEI — Guide collecte ESG.",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "MSCI — ESG Ratings (solutions durabilité)",
             url: "https://www.msci.com/data-and-analytics/sustainability-solutions/esg-ratings",
           },
+          { label: GUIDE_LABEL, url: GUIDE_URL },
         ],
       },
     ],
@@ -1253,6 +1310,19 @@ async function seedESG() {
         "avance",
         null
       ),
+      q(
+        "Selon ZEI, quelle part du temps d'une direction RSE est aujourd'hui absorbée par la collecte de données (vs analyse / pilotage) ?",
+        "ZEI documente le ratio 80 / 20 : 80 % du temps en collecte, 20 % en analyse — la note ESG repose sur une donnée bricolée tant que ce ratio n'est pas inversé (source : ZEI — Guide collecte ESG).",
+        "80 % du temps en collecte, 20 % en analyse",
+        [
+          "20 % du temps en collecte, 80 % en analyse",
+          "50 % du temps en collecte, 50 % en analyse",
+          "95 % du temps en collecte, 5 % en analyse",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
     ],
   });
 
@@ -1294,12 +1364,20 @@ async function seedESG() {
         text: "L’AMF et l’ESMA rappellent que les noms de fonds et les promesses « durables » doivent être vérifiables. Les entreprises évitent les allégations floues (« eco-friendly ») sans indicateurs.",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Antidote concret au greenwashing : industrialiser la collecte fait passer une entreprise de 40 % de données estimées à 90 % de données réelles. On ne parle plus d'intentions face aux investisseurs et aux agences de notation, mais d'une réalité mesurée et auditable. Source : ZEI — Guide collecte ESG.",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "AMF — Finance durable / greenwashing",
             url: "https://www.amf-france.org/en_US/Retail-investors/Sustainable-finance",
           },
+          { label: GUIDE_LABEL, url: GUIDE_URL },
         ],
       },
     ],
@@ -1376,6 +1454,19 @@ async function seedESG() {
         "debutant",
         null
       ),
+      q(
+        "Selon le Guide ZEI, l'industrialisation de la collecte fait évoluer le mix d'une entreprise dans quelle proportion de données estimées vs réelles ?",
+        "ZEI documente le passage de 40 % de données estimées à 90 % de données réelles : la communication ESG bascule de l'intention à la réalité mesurée (source : ZEI — Guide collecte ESG, §V.3).",
+        "De 40 % de données estimées à 90 % de données réelles",
+        [
+          "De 10 % de données estimées à 50 % de données réelles",
+          "De 60 % de données estimées à 70 % de données réelles",
+          "De 80 % de données estimées à 95 % de données réelles",
+        ],
+        2,
+        "intermediaire",
+        1
+      ),
     ],
   });
 
@@ -1401,12 +1492,20 @@ async function seedESG() {
         text: "Commencer par politiques écrites courtes, 5–10 KPI annuels et preuves (factures kWh, accidents du travail, politique fournisseurs).",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "La double matérialité est avant tout une tour de contrôle, pas une contrainte CSRD : selon la loi de Pareto appliquée par ZEI, 20 % des indicateurs couvrent 80 % des enjeux réels. Inutile pour une PME d'automatiser des données non matérielles : la matérialité définit le périmètre d'excellence et légitime la demande de données aux Achats ou à la Finance. Source : ZEI — Guide collecte ESG.",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "Commission européenne — PME et finance durable",
             url: "https://finance.ec.europa.eu/sustainable-finance/overview/sustainable-finance-strategy_en",
           },
+          { label: GUIDE_LABEL, url: GUIDE_URL },
         ],
       },
     ],
@@ -1515,12 +1614,20 @@ async function seedESG() {
         text: "Les grands groupes déploient des directions durabilité, des outils GRC et des audits tiers. Les PME s’appuient souvent sur des rôles partagés (DG, QHSE, finance) et sur des consultants ponctuels. La maturité ESG se mesure à la qualité du pilotage, pas seulement au volume de pages.",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Selon ZEI, la maturité ESG ne se juge pas au volume du rapport mais à la qualité du pilotage. Le bon réflexe : passer d'une équipe RSE « pompier » qui court après les chiffres à un chef d'orchestre — chaque métier (RH pour la parité et le turn-over, Achats pour les émissions fournisseurs, DAF pour la taxonomie verte) devient propriétaire de sa donnée, dans un triptyque Contributeur / Valideur / Administrateur. Source : ZEI — Guide collecte ESG (chap. III).",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "EFRAG — PME et reporting (contexte standards européens)",
             url: "https://www.efrag.org/",
           },
+          { label: GUIDE_LABEL, url: GUIDE_URL },
         ],
       },
     ],
@@ -1617,6 +1724,19 @@ async function seedESG() {
         "debutant",
         null
       ),
+      q(
+        "Selon ZEI, le triptyque de validation ESG qui rend une donnée auditable repose sur quels rôles ?",
+        "Le Guide ZEI structure la gouvernance autour de trois rôles distincts : le Contributeur saisit la donnée et téléverse la preuve, le Valideur (manager métier) vérifie la cohérence opérationnelle, l'Administrateur RSE assure la complétude inter-services (source : ZEI — Guide collecte ESG, §III.2).",
+        "Contributeur (saisit + preuve), Valideur métier (cohérence), Administrateur RSE (complétude)",
+        [
+          "DAF seul valide tous les indicateurs ESG",
+          "Contrôleur de gestion + commissaire aux comptes uniquement",
+          "RH + Communication suffisent pour valider la donnée ESG",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
     ],
   });
 
@@ -1662,12 +1782,20 @@ async function seedESG() {
         text: "La taxonomie fixe des critères techniques pour des activités substantiellement contributeurs aux objectifs environnementaux (climat, eau, économie circulaire, etc.), sans nuire aux autres objectifs. Les produits Article 8/9 s’appuient souvent sur ces définitions pour leurs KPI.",
       },
       {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Avant la CSRD, les entreprises choisissaient les valeurs absolues qui les arrangeaient : impossible de comparer deux émetteurs. Avec la VSME (Voluntary Standard for SMEs, EFRAG) et la Value Chain Cap introduite par l'Omnibus de février 2025, tout questionnaire fournisseur ou bancaire doit s'aligner sur les indicateurs VSME — intensités et ratios standardisés. La VSME devient un répertoire ESG universel : la donnée investissable devient enfin comparable. Source : ZEI — La VSME expliquée.",
+      },
+      {
         type: "sources",
         items: [
           {
             label: "Commission européenne — Taxonomie (activités durables)",
             url: "https://finance.ec.europa.eu/sustainable-finance/tools-and-standards/eu-taxonomy-climate-change-mitigation-and-adaptation_en",
           },
+          { label: VSME_LABEL, url: VSME_URL },
         ],
       },
     ],
@@ -1743,6 +1871,15 @@ async function seedESG() {
         2,
         "intermediaire",
         null
+      ),
+      q(
+        "Selon ZEI, quel cadre fait de la donnée ESG un répertoire universel pour fournisseurs et financeurs depuis l'Omnibus de février 2025 ?",
+        "La Value Chain Cap introduite par l'Omnibus de février 2025 impose que tout questionnaire fournisseur ou bancaire soit aligné sur la VSME (Voluntary Standard for SMEs construit par l'EFRAG) — la VSME devient le répertoire ESG commun (source : ZEI — La VSME expliquée).",
+        "La VSME (Voluntary Standard for SMEs)",
+        ["La SFDR seule", "La directive NFRD", "La norme ISO 14001"],
+        2,
+        "intermediaire",
+        1
       ),
     ],
   });
@@ -1865,7 +2002,703 @@ async function seedESG() {
     ],
   });
 
-  // Option : 3e module sur notation si idempotence a créé thème sans ce module — vérifier 12 modules seedés
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ——— Sous-thème NOUVEAU : Collecte ESG, arrêtez de bricoler (3 modules) ———
+  //
+  // Source ZEI : docs/zei-knowledge/esg-collecte/guide-collecte-esg.md (priority high)
+  //              docs/zei-knowledge/esg-collecte/checklist-collecte-esg.md (priority medium)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  await seedModuleQuick(stCollecte, {
+    slug: "esg-collecte-audit-dette-technique",
+    title: "Audit de la dette technique ESG et double matérialité",
+    description:
+      "Diagnostiquer la « dette technique » d'une collecte ESG bricolée et rationaliser les indicateurs avec la double matérialité avant d'industrialiser.",
+    order: 1,
+    estimatedMinutes: 14,
+    difficulty: "intermediaire",
+    lesson1Title: "Audit de l'existant : diagnostiquer la dette technique ESG",
+    lesson1Content: [
+      { type: "heading", level: 2, text: "Le paradoxe de la donnée ESG selon ZEI" },
+      {
+        type: "paragraph",
+        text:
+          "Avant d'automatiser, il faut comprendre. Automatiser un processus bancal génère des erreurs plus rapidement. La donnée ESG est nomade : elle naît rarement à la direction RSE et se cache dans des sources hétérogènes — la première étape consiste à les recenser et identifier leur format (numérique, papier, API, tableur).",
+      },
+      {
+        type: "table",
+        headers: ["Famille de données", "Source habituelle", "Direction propriétaire"],
+        rows: [
+          ["Sociales (parité, formation, accidents)", "SIRH ou fichiers RH déconnectés", "Ressources humaines"],
+          ["Environnementales (énergie, déchets)", "Factures d'énergie, gestion de flotte, prestataires déchets", "Services généraux / HSE"],
+          ["Gouvernance & achats (fournisseurs)", "ERP, contrats, chartes éthiques", "Achats / DAF"],
+        ],
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Trois risques majeurs d'un pilotage Excel",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Erreur de saisie : une virgule mal placée ou une unité mal interprétée (kWh vs MWh) effondre toute la trajectoire carbone.",
+          "Dépendance individuelle : si la personne qui gère le « fichier maître » quitte l'entreprise, le savoir-faire disparaît avec elle.",
+          "Insécurité des données : un Excel envoyé par mail n'est pas protégé — n'importe qui peut modifier une formule ou supprimer une cellule, compromettant l'intégrité pour l'auditeur.",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Aujourd'hui, une direction RSE passe en moyenne 80 % de son temps à collecter la donnée (relances, nettoyage de fichiers, vérification des unités) et seulement 20 % à l'analyser et à piloter la transformation. C'est ce ratio que l'industrialisation cherche à inverser, pour passer d'une RSE de « reporting » à une RSE de « pilotage ». Source : ZEI — Guide collecte ESG.",
+      },
+      {
+        type: "paragraph",
+        text:
+          "L'objectif de la cartographie est de dessiner le chemin parcouru par la donnée — entre la réception d'une facture de gaz et son intégration dans le rapport annuel, combien de mains ont touché la donnée ? Plus il y a d'étapes manuelles, plus le risque est élevé.",
+      },
+      {
+        type: "sources",
+        items: [{ label: GUIDE_LABEL, url: GUIDE_URL }],
+      },
+    ],
+    lesson2Title: "Rationaliser avant d'automatiser : la double matérialité comme tour de contrôle",
+    lesson2Content: [
+      { type: "heading", level: 2, text: "Industrialiser ne veut pas dire tout collecter" },
+      {
+        type: "paragraph",
+        text:
+          "Sans le filtre de la double matérialité, la collecte ESG devient un inventaire épuisant et sans valeur stratégique. Selon ZEI, la double matérialité ne doit pas être vue comme une contrainte CSRD, mais comme une tour de contrôle qui croise deux perspectives.",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Matérialité financière (Inside-out) : comment les enjeux durables (climat, ressources) impactent la santé économique de l'entreprise.",
+          "Matérialité d'impact (Outside-in) : comment les activités de l'entreprise impactent l'environnement et la société.",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Loi de Pareto appliquée à la collecte : 20 % d'indicateurs couvrent 80 % des enjeux réels. Inutile d'automatiser avec précision la gestion des déchets de bureau si l'enjeu majeur se situe dans le scope 3. La matérialité définit le périmètre d'excellence et légitime la demande de données aux Achats ou à la Finance. Source : ZEI — Guide collecte ESG (chap. II.1).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "« Collecter une fois, reporter partout »",
+      },
+      {
+        type: "paragraph",
+        text:
+          "Une même donnée sert au Bilan Carbone, à la CSRD et à EcoVadis. ZEI assure l'interopérabilité native via la synchronisation avec +130 référentiels : on saisit une donnée une seule fois et la plateforme l'attribue automatiquement aux différents cadres de reporting (avec conversions d'unités gérées).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Granularité : par hotspots plutôt qu'uniforme",
+      },
+      {
+        type: "paragraph",
+        text:
+          "ZEI recommande une granularité variable : extrêmement précise sur les postes les plus impactants (par exemple le scope 3 pour un industriel) et plus macro sur les postes négligeables. La fréquence est aussi un levier : la collecte annuelle est un constat, la collecte trimestrielle ou mensuelle permet d'ajuster le tir et transforme la donnée en outil de gestion courante.",
+      },
+      {
+        type: "regulatory_note",
+        year: 2026,
+        companySize: "all",
+        text:
+          "Avec la CSRD, les données quantitatives (intensités, ratios) deviennent comparables entre entreprises. La granularité par hotspots maximise le ratio « précision de l'analyse / effort de collecte » sans saturer les équipes.",
+      },
+      {
+        type: "sources",
+        items: [{ label: GUIDE_LABEL, url: GUIDE_URL }],
+      },
+    ],
+    questions: [
+      q(
+        "Selon ZEI, quelle part du temps d'une direction RSE est aujourd'hui absorbée par la collecte de données ESG (vs analyse) ?",
+        "ZEI documente le ratio 80 / 20 : 80 % du temps en collecte (relances, nettoyage, vérification d'unités), 20 % en analyse et pilotage (source : ZEI — Guide collecte ESG, paradoxe de la donnée).",
+        "80 % en collecte / 20 % en analyse",
+        ["20 % en collecte / 80 % en analyse", "50 % en collecte / 50 % en analyse", "5 % en collecte / 95 % en analyse"],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Quels sont les trois risques majeurs d'un pilotage ESG sur Excel selon ZEI ?",
+        "Le Guide ZEI identifie l'erreur de saisie (kWh vs MWh), la dépendance individuelle (perte de savoir-faire si la personne part) et l'insécurité des données partagées par mail (source : ZEI — Guide collecte ESG, §I.2).",
+        "Erreur de saisie, dépendance individuelle, insécurité des données",
+        [
+          "Coût de licence, lenteur d'ouverture, incompatibilité Mac",
+          "Manque de formules avancées, absence de macros, lenteur du tri",
+          "Trop de couleurs, polices illisibles, fichiers trop lourds",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Selon le Guide ZEI, sur quel principe Pareto repose la priorisation par double matérialité ?",
+        "ZEI applique la loi de Pareto à la collecte ESG : 20 % d'indicateurs bien choisis couvrent 80 % des enjeux réels — la matérialité définit le périmètre d'excellence (source : ZEI — Guide collecte ESG, §II.1).",
+        "20 % d'indicateurs couvrent 80 % des enjeux réels",
+        ["80 % d'indicateurs couvrent 20 % des enjeux", "Tous les indicateurs ESG ont le même poids", "Seuls les indicateurs financiers comptent"],
+        2,
+        "intermediaire",
+        1
+      ),
+      q(
+        "L'approche « Collecter une fois, reporter partout » repose chez ZEI sur la synchronisation avec :",
+        "ZEI assure l'interopérabilité native via la synchronisation avec +130 référentiels (CSRD, Bilan Carbone, EcoVadis…) : la donnée saisie une seule fois est attribuée à chaque cadre (source : ZEI — Guide collecte ESG, §II.2).",
+        "+130 référentiels (CSRD, Bilan Carbone, EcoVadis…)",
+        ["Uniquement la CSRD", "Une feuille Excel partagée par mail", "Un PDF imprimé par les commissaires aux comptes"],
+        2,
+        "intermediaire",
+        1
+      ),
+      q(
+        "Selon ZEI, où dorment habituellement les données ESG sociales (parité, formation, turn-over) dans une organisation ?",
+        "Les données sociales se trouvent dans le SIRH ou dans des fichiers RH déconnectés du système RSE — d'où l'enjeu de cartographier les sources (source : ZEI — Guide collecte ESG, §I.1).",
+        "Dans le SIRH ou dans des fichiers RH déconnectés",
+        [
+          "Dans les factures d'énergie",
+          "Dans les contrats fournisseurs de l'ERP achats",
+          "Dans le rapport financier publié",
+        ],
+        1,
+        "debutant",
+        0
+      ),
+      q(
+        "Quelle est la finalité ultime de l'industrialisation de la collecte selon ZEI ?",
+        "Le Guide ZEI insiste : passer d'une RSE de « reporting » qui constate les dégâts à une RSE de « pilotage » qui prépare l'avenir — c'est la seule voie pour libérer du temps et sécuriser la stratégie (source : ZEI — Guide collecte ESG, intro).",
+        "Passer d'une RSE de reporting à une RSE de pilotage",
+        [
+          "Réduire le nombre de salariés en RSE",
+          "Supprimer les rapports annuels",
+          "Externaliser entièrement la collecte à un consultant",
+        ],
+        1,
+        "debutant",
+        null
+      ),
+      q(
+        "Pour un industriel, l'approche de granularité recommandée par ZEI sur le scope 3 est :",
+        "ZEI recommande une granularité variable : extrêmement précise sur les postes hotspots (scope 3 pour un industriel) et macro sur les postes négligeables — pour maximiser le ratio précision / effort (source : ZEI — Guide collecte ESG, §II.3).",
+        "Une granularité par hotspots, fine sur les postes les plus impactants",
+        [
+          "Une granularité uniforme à la machine pour tous les postes",
+          "Une granularité au niveau groupe consolidé uniquement",
+          "Aucune granularité — un total annuel suffit",
+        ],
+        3,
+        "avance",
+        1
+      ),
+      q(
+        "La double matérialité, telle que présentée par ZEI, croise quelles deux perspectives ?",
+        "ZEI distingue la matérialité financière (Inside-out : comment les enjeux durables impactent l'entreprise) et la matérialité d'impact (Outside-in : comment l'entreprise impacte planète et société) (source : ZEI — Guide collecte ESG, §II.1).",
+        "Inside-out (financière) et Outside-in (impact)",
+        [
+          "Court terme et long terme uniquement",
+          "Marketing et communication interne",
+          "Audit fiscal et audit social",
+        ],
+        2,
+        "intermediaire",
+        1
+      ),
+    ],
+  });
+
+  await seedModuleQuick(stCollecte, {
+    slug: "esg-collecte-gouvernance-triptyque",
+    title: "Gouvernance triptyque et audit trail",
+    description:
+      "Structurer la collecte ESG avec un triptyque Contributeur / Valideur / Administrateur et garantir une piste d'audit fiable de bout en bout pour les OTI.",
+    order: 2,
+    estimatedMinutes: 15,
+    difficulty: "intermediaire",
+    lesson1Title: "Le triptyque Contributeur / Valideur / Administrateur",
+    lesson1Content: [
+      { type: "heading", level: 2, text: "Faire de la collecte l'affaire de tous" },
+      {
+        type: "paragraph",
+        text:
+          "Selon ZEI, la RSE ne doit plus être un département « tour d'ivoire » mais le chef d'orchestre d'une collecte décentralisée. L'enjeu : passer d'une équipe RSE « pompier » qui court après les chiffres à un pilotage où chaque direction métier prend ses responsabilités.",
+      },
+      {
+        type: "table",
+        headers: ["Métier", "Indicateurs ESG dont il devient propriétaire"],
+        rows: [
+          ["RH", "Parité, formation, turn-over, accidents du travail"],
+          ["Achats", "Émissions fournisseurs, chartes éthiques, dépendance fournisseurs critiques"],
+          ["DAF", "Taxonomie verte, investissements durables, alignement reporting financier"],
+        ],
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Le circuit de validation à trois étages",
+      },
+      {
+        type: "list",
+        style: "ordered",
+        items: [
+          "Le Contributeur saisit la donnée à la source et téléverse la preuve associée. Sa responsabilité est engagée sur la véracité du document joint.",
+          "Le Valideur (manager métier) vérifie la cohérence métier : « est-il normal que notre consommation d'eau ait doublé ce mois-ci ? ». Sa validation transforme la donnée RSE en donnée de performance départementale.",
+          "L'Administrateur (RSE) assure la complétude globale et la cohérence inter-services, sans avoir à vérifier chaque document un par un.",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "L'acculturation est fondamentale : un acheteur qui comprend que sa donnée sert à sécuriser un futur financement bancaire ou à répondre à un appel d'offres stratégique sera bien plus rigoureux qu'un acheteur qui remplit un tableau « pour la RSE ». Le triptyque rend la donnée auditable et engage durablement les contributeurs. Source : ZEI — Guide collecte ESG (chap. III).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Alertes et détection d'anomalies",
+      },
+      {
+        type: "paragraph",
+        text:
+          "Le temps réel est le meilleur allié de la qualité. ZEI paramètre automatiquement des seuils de tolérance : si une donnée saisie s'écarte de 20 % de la moyenne historique, le système bloque la saisie et demande une justification immédiate. On traite l'erreur à la source, pas six mois plus tard.",
+      },
+      {
+        type: "sources",
+        items: [{ label: GUIDE_LABEL, url: GUIDE_URL }],
+      },
+    ],
+    lesson2Title: "Audit trail et coffre-fort de preuves",
+    lesson2Content: [
+      { type: "heading", level: 2, text: "L'audit comme formalité, pas comme épreuve" },
+      {
+        type: "paragraph",
+        text:
+          "Avec la CSRD, les rapports ESG sont audités par des commissaires aux comptes ou des organismes tiers indépendants (OTI). La donnée doit être irréprochable : la piste d'audit fiable est la colonne vertébrale de la crédibilité.",
+      },
+      {
+        type: "callout",
+        variant: "warning",
+        title: "Le piège de la « boîte noire »",
+        text:
+          "Une erreur classique : effectuer des calculs complexes sur des fichiers personnels hors système. Pour l'auditeur, c'est une boîte noire impossible à vérifier. Chaque étape de transformation (conversions, facteurs d'émission) doit être paramétrée et verrouillée dans un outil commun.",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Les trois piliers de l'audit trail",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Horodatage immuable : chaque saisie est marquée d'une date et d'une heure précises.",
+          "Traçabilité des auteurs : « qui a modifié quoi ? » devient une information accessible en un clic.",
+          "Motif de modification : la saisie d'un commentaire est obligatoire en cas de correction d'une donnée historique pour justifier l'écart auprès des auditeurs.",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "La piste d'audit fiable repose sur la capacité de l'entreprise à dé-tricoter chaque indicateur consolidé pour remonter jusqu'à l'unité de mesure initiale. Pour un auditeur, la question n'est pas tant « ce chiffre est-il juste ? » mais « comment a-t-il été produit ? ». Source : ZEI — Guide collecte ESG (chap. IV).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "Le coffre-fort numérique de preuves",
+      },
+      {
+        type: "paragraph",
+        text:
+          "Collecter des données sans preuve jointe est une pratique à haut risque. ZEI impose un coffre-fort numérique où chaque donnée est liée de manière indissociable à son justificatif : facture, certificat de formation, photo de compteur. L'audit OTI devient indolore.",
+      },
+      {
+        type: "regulatory_note",
+        year: 2026,
+        companySize: "large",
+        text:
+          "Sous CSRD, l'assurance limitée puis raisonnable des données ESG par un OTI nécessite une piste d'audit complète et un coffre-fort de justificatifs accessible à l'auditeur.",
+      },
+      {
+        type: "sources",
+        items: [{ label: GUIDE_LABEL, url: GUIDE_URL }],
+      },
+    ],
+    questions: [
+      q(
+        "Selon le Guide ZEI, le triptyque de validation ESG implique quels trois rôles distincts ?",
+        "ZEI structure la gouvernance autour de trois rôles : le Contributeur (saisit + preuve), le Valideur (cohérence métier), l'Administrateur RSE (complétude inter-services) (source : ZEI — Guide collecte ESG, §III.2).",
+        "Contributeur, Valideur (manager métier), Administrateur (RSE)",
+        [
+          "PDG, DAF, Commissaire aux comptes",
+          "Stagiaire, alternant, prestataire externe",
+          "Conseil d'administration, comité d'audit, AMF",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "À partir de quel écart par rapport à la moyenne historique le système ZEI bloque-t-il une saisie pour exiger une justification ?",
+        "ZEI paramètre par défaut un seuil de tolérance à 20 % d'écart : au-delà, la saisie est bloquée et un commentaire de justification est demandé immédiatement (source : ZEI — Guide collecte ESG, §III.3).",
+        "20 % d'écart par rapport à la moyenne historique",
+        ["1 % d'écart", "50 % d'écart", "200 % d'écart"],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "À quoi sert exactement le contrôle de cohérence réalisé par le Valideur (manager métier) selon ZEI ?",
+        "Le Valideur vérifie la cohérence opérationnelle (« est-il normal que notre consommation d'eau ait doublé ce mois-ci ? ») et transforme ainsi la donnée RSE en donnée de performance départementale (source : ZEI — Guide collecte ESG, §III.2).",
+        "Vérifier la plausibilité opérationnelle des chiffres remontés par les contributeurs",
+        [
+          "Recalculer chaque facteur d'émission depuis la base ADEME",
+          "Auditer les comptes financiers de la filiale",
+          "Auditer la conformité RGPD du SIRH",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Quels sont les trois piliers de la piste d'audit fiable selon ZEI ?",
+        "Le Guide ZEI identifie trois piliers d'audit trail : horodatage immuable de chaque saisie, traçabilité des auteurs (« qui a modifié quoi »), motif de modification obligatoire en cas de correction (source : ZEI — Guide collecte ESG, §IV.2).",
+        "Horodatage immuable, traçabilité des auteurs, motif de modification",
+        [
+          "Antivirus, sauvegarde quotidienne, chiffrement des disques",
+          "Mot de passe, double authentification, VPN",
+          "ISO 9001, ISO 14001, ISO 27001",
+        ],
+        3,
+        "avance",
+        1
+      ),
+      q(
+        "Le « coffre-fort » numérique évoqué par ZEI sert à :",
+        "Le coffre-fort lie de manière indissociable chaque donnée comptable à son justificatif (facture, certificat de formation, photo de compteur) — c'est ce qui rend l'audit OTI indolore (source : ZEI — Guide collecte ESG, §IV.3).",
+        "Lier chaque donnée à son justificatif (facture, certificat, photo de compteur)",
+        [
+          "Stocker les mots de passe des contributeurs",
+          "Archiver les contrats de travail des employés",
+          "Conserver des sauvegardes off-site des serveurs",
+        ],
+        2,
+        "intermediaire",
+        1
+      ),
+      q(
+        "Selon ZEI, qui audite les rapports CSRD à partir de l'arrivée de la directive ?",
+        "ZEI rappelle que les rapports ESG seront audités par des commissaires aux comptes ou des organismes tiers indépendants (OTI) — la donnée doit donc être irréprochable et traçable (source : ZEI — Guide collecte ESG, chap. IV).",
+        "Des commissaires aux comptes ou organismes tiers indépendants (OTI)",
+        [
+          "L'AMF qui audite chaque rapport individuellement",
+          "Une équipe interne RSE sans regard externe",
+          "Le commissaire aux apports lors d'une fusion",
+        ],
+        1,
+        "debutant",
+        1
+      ),
+      q(
+        "Le concept de « boîte noire » désigne chez ZEI :",
+        "ZEI alerte sur les calculs complexes effectués sur des fichiers personnels hors système : pour l'auditeur, ce sont des « boîtes noires » impossibles à vérifier — d'où l'obligation de paramétrer/verrouiller chaque transformation dans un outil commun (source : ZEI — Guide collecte ESG, §IV.1).",
+        "Les calculs complexes effectués sur des fichiers Excel personnels invérifiables par l'auditeur",
+        [
+          "Un coffre-fort physique pour les preuves papier",
+          "Une intelligence artificielle obscure",
+          "Une caisse fiscale anonyme",
+        ],
+        3,
+        "avance",
+        1
+      ),
+      q(
+        "Selon ZEI, l'acculturation des métiers à la donnée ESG passe surtout par :",
+        "Un acheteur qui comprend que sa donnée sécurise un futur financement bancaire ou un appel d'offres stratégique sera bien plus rigoureux qu'un acheteur qui remplit un tableau « pour la RSE » (source : ZEI — Guide collecte ESG, §III.1).",
+        "Montrer que la donnée sécurise un financement bancaire ou un appel d'offres",
+        [
+          "Imposer des sanctions financières aux contributeurs en retard",
+          "Multiplier les e-mails de relance hebdomadaires",
+          "Sous-traiter la collecte à un cabinet externe",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+    ],
+  });
+
+  await seedModuleQuick(stCollecte, {
+    slug: "esg-collecte-checklist-post-collecte",
+    title: "Checklist ZEI post-collecte (6 sections)",
+    description:
+      "Les 6 sections de la checklist ZEI pour analyser à froid une collecte ESG terminée : complétion, cohérence, justificatifs, consolidation, préparation reporting, capitalisation.",
+    order: 3,
+    estimatedMinutes: 12,
+    difficulty: "debutant",
+    lesson1Title: "Sections 1 à 3 — Complétion, cohérence, justificatifs",
+    lesson1Content: [
+      {
+        type: "heading",
+        level: 2,
+        text: "Prendre du recul sur la dernière collecte",
+      },
+      {
+        type: "paragraph",
+        text:
+          "L'objectif de la checklist ZEI est d'aider à comprendre ce qui a fonctionné, ce qui a bloqué, et de ne pas repartir de zéro la prochaine fois. Elle s'organise en 6 sections — les trois premières sécurisent la matière première (complétion, qualité, traçabilité).",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "1. Complétion des données",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Toutes les entités du périmètre ont-elles répondu ?",
+          "Tous les indicateurs obligatoires sont-ils complétés ?",
+          "Les données manquantes sont-elles identifiées et listées ?",
+          "Un taux de complétion global et par entité est-il calculé ?",
+          "Les entités non répondantes ont-elles été relancées ?",
+          "Les données issues d'estimations sont-elles clairement identifiées ?",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Une donnée manquante aujourd'hui devient une faiblesse demain. Une collecte incomplète fragilise immédiatement tout le reporting : retraitements en urgence, perte de crédibilité en interne et difficultés à produire des indicateurs consolidés fiables, notamment dans un cadre réglementaire. Source : ZEI — Checklist collecte ESG.",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "2. Cohérence et qualité des données",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Les unités sont-elles homogènes (kWh, tonnes, €…) ?",
+          "Les conversions d'unités ont-elles été vérifiées ?",
+          "Les ordres de grandeur sont-ils cohérents par rapport à N-1 ?",
+          "Les variations significatives sont-elles expliquées ?",
+          "Les ratios clés (énergie / surface, émissions / CA) sont-ils plausibles ?",
+          "Les doublons ont-ils été supprimés ?",
+        ],
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "3. Justificatifs et validations",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Pièces justificatives collectées pour les données sensibles.",
+          "Sources de données documentées.",
+          "Chaque donnée rattachée à un responsable identifié.",
+          "Facteurs d'émission utilisés documentés.",
+          "Indicateurs relus par les responsables métiers.",
+          "Validation globale (RSE / finance / direction) réalisée et tracée.",
+        ],
+      },
+      {
+        type: "sources",
+        items: [{ label: CHECKLIST_LABEL, url: CHECKLIST_URL }],
+      },
+    ],
+    lesson2Title: "Sections 4 à 6 — Consolidation, reporting, capitalisation",
+    lesson2Content: [
+      {
+        type: "heading",
+        level: 2,
+        text: "De la base de données au pilotage stratégique",
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "4. Consolidation et analyse des données",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Les règles de consolidation sont-elles clairement définies ?",
+          "Les méthodes d'agrégation sont-elles cohérentes (somme, moyenne…) ?",
+          "Les cas particuliers (acquisitions, fermetures…) ont-ils été intégrés ?",
+          "Les principaux écarts et tendances sont-ils identifiés ?",
+          "Les résultats sont-ils comparés à N-1 ou aux objectifs ?",
+          "Les hotspots (sites ou activités les plus impactants) sont-ils identifiés ?",
+          "Les anomalies restantes sont-elles comprises et documentées ?",
+        ],
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "5. Préparation au reporting",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Tous les indicateurs pour le reporting sont-ils disponibles ?",
+          "Les données sont-elles alignées avec les autres reportings (financier notamment) ?",
+          "Les indicateurs propres au secteur sont-ils identifiables et justifiables ?",
+          "Les commentaires contextualisent les données.",
+          "Les hypothèses et limites méthodologiques sont expliquées.",
+          "Les formats d'export sont prêts (tableaux, graphiques…).",
+          "Les données sont prêtes pour un audit externe éventuel.",
+        ],
+      },
+      {
+        type: "heading",
+        level: 3,
+        text: "6. Enseignements pour la prochaine collecte",
+      },
+      {
+        type: "list",
+        style: "bullet",
+        items: [
+          "Difficultés rencontrées documentées.",
+          "Indicateurs les plus complexes à collecter identifiés.",
+          "Délais réels vs prévus analysés.",
+          "Document de traçabilité de collecte complété.",
+          "Besoins d'automatisation identifiés.",
+          "Plan d'amélioration concret défini pour la prochaine collecte.",
+        ],
+      },
+      {
+        type: "callout",
+        variant: "tip",
+        title: "Vu par ZEI",
+        text:
+          "Ne pas capitaliser sur une collecte, c'est repartir de zéro chaque année. Les mêmes difficultés réapparaissent, les équipes se démobilisent et les coûts opérationnels augmentent. À l'inverse, les entreprises qui structurent leurs retours d'expérience gagnent en efficacité, fiabilisent leurs données et montent rapidement en maturité ESG. Source : ZEI — Checklist collecte ESG (§6).",
+      },
+      {
+        type: "sources",
+        items: [{ label: CHECKLIST_LABEL, url: CHECKLIST_URL }],
+      },
+    ],
+    questions: [
+      q(
+        "La checklist post-collecte ZEI s'organise en combien de sections ?",
+        "La checklist ZEI distingue 6 sections : complétion, cohérence et qualité, justificatifs et validations, consolidation et analyse, préparation au reporting, enseignements (source : ZEI — Checklist collecte ESG, sommaire).",
+        "6 sections",
+        ["3 sections", "10 sections", "15 sections"],
+        1,
+        "debutant",
+        0
+      ),
+      q(
+        "Selon la Checklist ZEI, quel risque concret survient si les données manquantes ne sont pas identifiées et listées ?",
+        "ZEI alerte qu'une collecte incomplète fragilise tout le reporting : retraitements en urgence, perte de crédibilité en interne et difficultés à produire des indicateurs consolidés fiables (source : ZEI — Checklist, §1).",
+        "Retraitements en urgence et perte de crédibilité interne",
+        [
+          "Une amende immédiate de l'AMF",
+          "Une suspension automatique de l'exercice fiscal",
+          "Un blocage des salaires des contributeurs",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Pour vérifier la cohérence des données ESG, la Checklist ZEI demande de comparer les chiffres :",
+        "La Checklist exige de vérifier les ordres de grandeur par rapport à N-1 et la plausibilité des ratios clés (énergie / surface, émissions / CA) — c'est ainsi que l'on détecte une variation aberrante (source : ZEI — Checklist, §2).",
+        "Aux ordres de grandeur N-1 et aux ratios clés (énergie / surface, émissions / CA)",
+        [
+          "Aux chiffres communiqués par les concurrents directs",
+          "Au cours de bourse de l'entreprise",
+          "À l'inflation annuelle de l'INSEE",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Selon la Checklist ZEI, à quoi sert la documentation des facteurs d'émission utilisés ?",
+        "Sans facteurs d'émission documentés, les données deviennent indéfendables en cas d'audit et génèrent des allers-retours internes coûteux pour retrouver leur origine (source : ZEI — Checklist, §3).",
+        "Rendre les données auditables et défendables face à un OTI",
+        [
+          "Réduire la facture d'énergie de l'entreprise",
+          "Accélérer le rendu du rapport financier",
+          "Imposer un facteur unique à toute la profession",
+        ],
+        2,
+        "intermediaire",
+        0
+      ),
+      q(
+        "Quels cas particuliers la Checklist ZEI demande explicitement d'intégrer à la consolidation ESG ?",
+        "ZEI cite explicitement les acquisitions et les fermetures comme cas particuliers à intégrer à la consolidation pour éviter des biais (source : ZEI — Checklist, §4).",
+        "Les acquisitions et les fermetures de sites",
+        [
+          "Les fluctuations de marché sur 24 h",
+          "Les jours fériés et ponts du calendrier",
+          "Les changements de logo et de charte graphique",
+        ],
+        2,
+        "intermediaire",
+        1
+      ),
+      q(
+        "Dans la consolidation, à quoi correspondent les « hotspots » que la Checklist ZEI demande d'identifier ?",
+        "Les hotspots, selon la Checklist ZEI, sont les sites ou activités les plus impactants — leur identification permet de prioriser les leviers d'action et d'orienter la stratégie (source : ZEI — Checklist, §4).",
+        "Les sites ou activités les plus impactants à prioriser",
+        [
+          "Les serveurs informatiques en surchauffe",
+          "Les bureaux ayant le moins de fenêtres",
+          "Les filiales dont le CA augmente le plus vite",
+        ],
+        2,
+        "intermediaire",
+        1
+      ),
+      q(
+        "Avant un éventuel audit externe, la Checklist ZEI insiste sur :",
+        "ZEI souligne que les données ESG doivent être alignées avec les autres reportings (notamment financier) — sans cela, les incohérences apparaissent trop tard et génèrent une forte pression en fin de cycle (source : ZEI — Checklist, §5).",
+        "L'alignement avec les autres reportings (notamment financier)",
+        [
+          "Un export en PDF couleur uniquement",
+          "Une réunion plénière des actionnaires",
+          "La rédaction d'un communiqué de presse",
+        ],
+        3,
+        "avance",
+        1
+      ),
+      q(
+        "Selon la Checklist ZEI, ne pas capitaliser sur une collecte revient à :",
+        "ZEI résume : sans capitalisation, les mêmes difficultés réapparaissent chaque année, les équipes se démobilisent et les coûts opérationnels augmentent (source : ZEI — Checklist, §6).",
+        "Repartir de zéro chaque année avec démobilisation des équipes",
+        [
+          "Économiser du temps sur la collecte suivante",
+          "Garantir une note maximale en audit",
+          "Améliorer automatiquement la qualité des données",
+        ],
+        1,
+        "debutant",
+        1
+      ),
+    ],
+  });
+
+  // Vérification finale : 7 sous-thèmes, 15 modules attendus pour le thème ESG.
   const countMods = await db
     .select({ id: quizModules.id })
     .from(quizModules)

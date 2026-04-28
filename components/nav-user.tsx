@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import Link from "next/link";
 import {
   ChevronsUpDown,
   Circle,
@@ -44,6 +45,8 @@ export function NavUser({
   backgroundGradient,
   contextSubtitle,
   hideEmail = false,
+  profileHref = "/portal/profile",
+  linkSubtitleToProfile = true,
 }: {
   user: {
     name: string;
@@ -59,6 +62,10 @@ export function NavUser({
   } | null;
   /** Masquer l’adresse e-mail dans le footer et le menu (nom + sous-titre restent visibles) */
   hideEmail?: boolean;
+  /** Cible du lien « Profil » et du sous-titre (si activé) */
+  profileHref?: string;
+  /** Fait du sous-titre (ex. Compte personnel) un lien vers le profil */
+  linkSubtitleToProfile?: boolean;
 }) {
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
@@ -94,9 +101,19 @@ export function NavUser({
                   {user.name || "User"}
                 </span>
                 {contextSubtitle ? (
-                  <span className="truncate text-xs text-muted-foreground">
-                    {contextSubtitle}
-                  </span>
+                  linkSubtitleToProfile ? (
+                    <Link
+                      href={profileHref}
+                      onClick={(e) => e.stopPropagation()}
+                      className="truncate text-left text-xs text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                    >
+                      {contextSubtitle}
+                    </Link>
+                  ) : (
+                    <span className="truncate text-xs text-muted-foreground">
+                      {contextSubtitle}
+                    </span>
+                  )
                 ) : null}
                 {!hideEmail ? (
                   <span className="truncate text-xs">{user.email}</span>
@@ -132,9 +149,18 @@ export function NavUser({
                     {user.name || "User"}
                   </span>
                   {contextSubtitle ? (
-                    <span className="truncate text-xs text-muted-foreground">
-                      {contextSubtitle}
-                    </span>
+                    linkSubtitleToProfile ? (
+                      <Link
+                        href={profileHref}
+                        className="truncate text-left text-xs text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                      >
+                        {contextSubtitle}
+                      </Link>
+                    ) : (
+                      <span className="truncate text-xs text-muted-foreground">
+                        {contextSubtitle}
+                      </span>
+                    )
                   ) : null}
                   {!hideEmail ? (
                     <span className="truncate text-xs">{user.email}</span>
@@ -167,11 +193,11 @@ export function NavUser({
 
             {/* Liens */}
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                onClick={() => (window.location.href = "/profile")}
-              >
-                <User />
-                Profil
+              <DropdownMenuItem asChild>
+                <Link href={profileHref} className="cursor-pointer">
+                  <User />
+                  Profil
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
 

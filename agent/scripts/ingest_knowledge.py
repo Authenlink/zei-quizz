@@ -30,6 +30,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
+import frontmatter
 from langchain_core.documents import Document
 from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
 
@@ -49,6 +50,16 @@ MIN_CHUNK_WORDS = 20    # Filtre les headers seuls, lignes vides, fragments rés
 
 DOCS_ROOT = Path(__file__).resolve().parent.parent / "rag" / "documents"
 EXCLUDED_CATEGORIES = {"helpdesk"}  # Géré par ingest_helpdesk.py
+
+# Clés de frontmatter propagées dans Qdrant (uniquement si présentes).
+# Voir docs/zei-knowledge/<category>/*.md et agent/rag/documents/README.md.
+PROPAGATED_FRONTMATTER_KEYS = (
+    "source_url",
+    "title",
+    "theme_slugs",
+    "applicable_year",
+    "audience",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -137,11 +148,48 @@ def chunk_document(
 # Chargement des documents
 # ---------------------------------------------------------------------------
 
+def _iter_category_dirs(root: Path):
+    """
+    Yields (category_name, dir_path) pour chaque dossier contenant des .md.
+
+    Supporte deux structures :
+      - rag/documents/<category>/*.md           (legacy : general, faq, guide)
+      - rag/documents/<top>/<category>/*.md     (nested : zei/csrd, zei/esg-collecte, ...)
+
+    Le `category` retenu est toujours le nom du dossier qui contient
+    directement les .md (correspond au champ `category` du frontmatter).
+    Les dossiers `helpdesk/` et leurs descendants sont exclus.
+    """
+    for top_dir in sorted(root.iterdir()):
+        if not top_dir.is_dir() or top_dir.name in EXCLUDED_CATEGORIES:
+            continue
+        # Niveau 1 : .md directement dans le dossier ?
+        has_direct_md = any(top_dir.glob("*.md"))
+        if has_direct_md:
+            yield top_dir.name, top_dir
+        # Niveau 2 : sous-dossiers contenant des .md (structure imbriquée)
+        for sub_dir in sorted(top_dir.iterdir()):
+            if not sub_dir.is_dir() or sub_dir.name in EXCLUDED_CATEGORIES:
+                continue
+            if any(sub_dir.glob("*.md")):
+                yield sub_dir.name, sub_dir
+
+    # Fichiers .md à la racine de rag/documents/ (hors README.md)
+    has_root_md = any(
+        p.is_file() and p.suffix == ".md" and p.name.lower() != "readme.md"
+        for p in root.iterdir()
+    )
+    if has_root_md:
+        yield "root", root
+
+
 def load_knowledge_chunks() -> list[dict]:
     """
-    Parcourt rag/documents/{category}/*.md (hors helpdesk).
-    category = nom du dossier parent → stocké en metadata pour filtrage Qdrant.
-    Ignore rag/documents/*.md (fichiers à la racine comme README.md).
+    Parcourt rag/documents/{category}/*.md et rag/documents/{top}/{category}/*.md
+    (hors helpdesk).
+    category = nom du dossier qui contient directement les .md → stocké en
+    metadata pour filtrage Qdrant.
+    Inclut les .md à la racine de rag/documents/ sous la catégorie payload « root » (sauf README.md).
     """
     md_splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=[("#", "h1"), ("##", "h2"), ("###", "h3")],
@@ -155,36 +203,44 @@ def load_knowledge_chunks() -> list[dict]:
 
     all_chunks = []
 
-    for category_dir in sorted(DOCS_ROOT.iterdir()):
-        if not category_dir.is_dir() or category_dir.name in EXCLUDED_CATEGORIES:
-            continue
-        category = category_dir.name
-
+    for category, category_dir in _iter_category_dirs(DOCS_ROOT):
         for md_file in sorted(category_dir.glob("*.md")):
+            if category == "root" and md_file.name.lower() == "readme.md":
+                continue
             content = md_file.read_text(encoding="utf-8")
             if not content.strip():
                 logger.warning(f"Fichier vide ignoré : {category}/{md_file.name}")
                 continue
 
-            raw_chunks = chunk_document(content, md_splitter, text_splitter)
+            # Parsing frontmatter YAML (rétrocompatible : fm == {} si absent).
+            post = frontmatter.loads(content)
+            fm = post.metadata or {}
+            body = post.content if fm else content
+
+            raw_chunks = chunk_document(body, md_splitter, text_splitter)
             if not raw_chunks:
                 logger.warning(f"Aucun chunk valide : {category}/{md_file.name}")
                 continue
 
+            base_meta = {
+                "category": category,
+                "source": md_file.stem,
+                "doc_type": "knowledge",
+                "priority": fm.get("priority") or "Medium",
+                "keywords": [],
+            }
+            for key in PROPAGATED_FRONTMATTER_KEYS:
+                if key in fm and fm[key] is not None:
+                    base_meta[key] = fm[key]
+
             for i, text in enumerate(raw_chunks):
                 all_chunks.append({
                     "content": text,
-                    "metadata": {
-                        "category": category,
-                        "source": md_file.stem,
-                        "doc_type": "knowledge",
-                        "priority": "Medium",
-                        "keywords": [],
-                        "chunk_index": i,
-                    },
+                    "metadata": {**base_meta, "chunk_index": i},
                 })
 
-            logger.info(f"  {category}/{md_file.name} → {len(raw_chunks)} chunks")
+            extra = " (frontmatter)" if fm else ""
+            logger.info(f"  {category}/{md_file.name} → {len(raw_chunks)} chunks{extra}")
 
     logger.info(f"\nTotal : {len(all_chunks)} chunks (knowledge_docs)")
     return all_chunks
@@ -209,22 +265,39 @@ def main():
 
     if args.dry_run:
         logger.info(f"\n--- DRY RUN — {len(chunks)} chunks (aucune indexation) ---")
-        for chunk in chunks[:5]:
+        # On échantillonne 1 chunk par couple (category, source) pour bien
+        # visualiser la metadata enrichie (notamment source_url) sur tous les docs.
+        seen: set[tuple[str, str]] = set()
+        sample: list[dict] = []
+        for chunk in chunks:
+            meta = chunk["metadata"]
+            key = (meta.get("category", ""), meta.get("source", ""))
+            if key in seen:
+                continue
+            seen.add(key)
+            sample.append(chunk)
+        for chunk in sample:
             meta = chunk["metadata"]
             logger.info(
                 f"\n  [{meta['category']}] {meta['source']} — chunk {meta['chunk_index']} "
-                f"— {len(chunk['content'].split())} mots"
+                f"— {len(chunk['content'].split())} mots — priority={meta.get('priority')}"
             )
+            for key in PROPAGATED_FRONTMATTER_KEYS:
+                if key in meta:
+                    logger.info(f"    {key}: {meta[key]}")
             logger.info(f"  {chunk['content'][:200]}...")
-        if len(chunks) > 5:
-            logger.info(f"\n  ... et {len(chunks) - 5} autres chunks")
+        logger.info(f"\n  Echantillon : {len(sample)} doc(s) sur {len(chunks)} chunks total")
         return
 
     logger.info(f"\nCréation de la collection '{COLLECTION_KNOWLEDGE}'...")
     create_knowledge_collection()
 
     logger.info(f"Indexation de {len(chunks)} chunks...")
-    total = upsert_chunks(COLLECTION_KNOWLEDGE, chunks)
+    total = upsert_chunks(
+        COLLECTION_KNOWLEDGE,
+        chunks,
+        deterministic_ids=True,
+    )
 
     logger.info(f"\n✓ {total} points indexés dans '{COLLECTION_KNOWLEDGE}'")
     logger.info(f"Coût embeddings estimé : ~${total * 300 / 1_000_000 * 0.13:.4f}")

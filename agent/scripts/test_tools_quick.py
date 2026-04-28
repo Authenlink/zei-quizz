@@ -1,11 +1,8 @@
 """
-Test rapide du tool d'exemple.
+Tests rapides : get_current_time, search_zei_docs (Qdrant), agent avec questions RAG.
 
 Usage :
     PYTHONPATH=. python scripts/test_tools_quick.py
-
-Message de test :
-  "Quelle heure est-il ?"  → get_current_time
 """
 
 import asyncio
@@ -47,11 +44,27 @@ async def run_test(message: str, customer_id: str | None = None, label: str = ""
 
 
 def main():
+    from app.tools.rag.search_zei_docs import search_zei_docs_impl
+
+    print("=" * 70)
+    print("  search_zei_docs (Qdrant, sans LLM)")
+    print("=" * 70)
+    for label, q in [
+        ("VSME", "C'est quoi la VSME ?"),
+        ("Collecte ESG", "Comment ZEI aide à la collecte ESG ?"),
+    ]:
+        print(f"\n--- {label} ---")
+        try:
+            out = search_zei_docs_impl(q, None)
+            print(out[:1200] + "..." if len(out) > 1200 else out)
+        except Exception as e:
+            print(f"ERREUR: {e}")
+
     tests = [
         ("Heure actuelle", "Quelle heure est-il ?", None),
     ]
-    print("=" * 70)
-    print("  Test rapide du tool d'exemple (get_current_time)")
+    print("\n" + "=" * 70)
+    print("  Agent — get_current_time")
     print("=" * 70)
     for label, message, customer_id in tests:
         print(f"\n--- {label} ---")
@@ -59,6 +72,22 @@ def main():
         try:
             content = asyncio.run(run_test(message, customer_id, label))
             print(f"Réponse: {content[:300]}..." if len(content) > 300 else f"Réponse: {content}")
+        except Exception as e:
+            print(f"ERREUR: {e}")
+
+    rag_agent_tests = [
+        ("Agent VSME", "C'est quoi la VSME ?", None),
+        ("Agent collecte ESG", "Comment ZEI aide à la collecte ESG ?", None),
+    ]
+    print("\n" + "=" * 70)
+    print("  Agent — questions RAG (LLM + outils)")
+    print("=" * 70)
+    for label, message, customer_id in rag_agent_tests:
+        print(f"\n--- {label} ---")
+        print(f"Message: {message}")
+        try:
+            content = asyncio.run(run_test(message, customer_id, label))
+            print(f"Réponse: {content[:800]}..." if len(content) > 800 else f"Réponse: {content}")
         except Exception as e:
             print(f"ERREUR: {e}")
     print("\n" + "=" * 70)

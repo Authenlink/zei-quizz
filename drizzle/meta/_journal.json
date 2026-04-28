@@ -15,6 +15,13 @@
       "when": 1776678398134,
       "tag": "0001_messy_the_captain",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1745846400000,
+      "tag": "0002_clammy_quicksilver",
+      "breakpoints": true
     }
   ]
 }

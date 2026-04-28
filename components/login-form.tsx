@@ -70,7 +70,13 @@ export function LoginForm({
             }
           );
         }
-        router.push("/dashboard");
+        // Redirection en fonction du rôle RBAC :
+        //   - user  → portail
+        //   - staff → back-office
+        //   - admin → back-office par défaut
+        const role = session?.user?.role;
+        const destination = role === "user" ? "/portal" : "/dashboard";
+        router.push(destination);
         router.refresh();
       }
     } catch {

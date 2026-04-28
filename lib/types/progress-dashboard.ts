@@ -43,6 +43,8 @@ export type ProgressDashboardPayload = {
   completedModules: number;
   totalAttempts: number;
   averageScore: number;
+  /** Modules enrichis ZEI distincts ayant reçu au moins une visite (page leçon). */
+  zeiEnrichedModulesConsulted: number;
   themes: ProgressThemeRow[];
   recentAttempts: RecentQuizAttempt[];
   recommendedModule: RecommendedModule | null;

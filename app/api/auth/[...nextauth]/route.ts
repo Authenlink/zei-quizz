@@ -48,7 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const isPasswordValid = await bcrypt.compare(
           credentials.password as string,
-          foundUser.password
+          foundUser.password,
         );
 
         if (!isPasswordValid) {
@@ -106,7 +106,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // JWT créés avant l’ajout du champ : reconnexion recommandée
         session.user.role = (token.role as UserRole | undefined) ?? "staff";
         session.user.workspaceId = (token.workspaceId as number | null) ?? null;
-        session.user.workspaceName = (token.workspaceName as string | null) ?? null;
+        session.user.workspaceName =
+          (token.workspaceName as string | null) ?? null;
       }
       return session;
     },

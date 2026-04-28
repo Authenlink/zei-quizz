@@ -373,3 +373,131 @@ pnpm dlx shadcn@latest add chart
 
 - **Charts (shadcn)** : déjà ajouté (`chart` + `recharts`) pour la Phase 10.
 - **react-markdown** : déjà installé.
+
+---
+
+# V2 — Intégration de la documentation ZEI
+
+> Voir [PROJECTS.md](PROJECTS.md#v2--knowledge-base-zei-en-cours-de-planification) pour le catalogue des 7 documents et leurs URLs publiques.
+>
+> Voir [PLAN.md](PLAN.md#v2--knowledge-base-zei--rag) pour l'architecture cible (frontmatter, RAG, tool agent).
+
+## Principe directeur V2
+
+Refonte **incrémentale, un thème complet à la fois**. Chaque thème est livrable et testable indépendamment. On réutilise les `scripts/seed-*.ts` existants avec leur option `--reset` (déjà supportée).
+
+**Ordre des phases (couverture PDFs décroissante) :**
+
+1. CSRD (En Bref 5 + VSME)
+2. ESG (Guide + Checklist Collecte)
+3. ZEI & RSE (tous les guides Zei + Plaquette + Proposition Portalp)
+4. Obligations 2025-2026 (VSME)
+5. RSE & Marketing (RSE de performance + Proposition Portalp)
+6. RSE (refresh transversal léger)
+
+---
+
+## Phase 13 — Setup Knowledge Base ZEI (commune)
+
+> **Bloquant** : attendre les 2 Google Slides manquants (Proposition Portalp + Plaquette synthétique 2026 → export PDF) avant de démarrer la conversion. Faire les 7 docs en lot pour rester cohérent.
+
+- [x] Créer l'arborescence `docs/zei-knowledge/{csrd,esg-collecte,rse-performance,zei-offre}/`
+- [x] Convertir les 7 documents en `.md` (outil : `pdfplumber` ou `marker` ; relecture humaine obligatoire pour les tables)
+- [x] Pour chaque `.md`, ajouter le frontmatter YAML avec `title`, `source_pdf`, `source_url`, `category`, `theme_slugs`, `applicable_year`, `audience`, `priority`
+- [x] Rédiger `docs/zei-knowledge/INDEX.md` (table doc → thème/sous-thème/module à enrichir, colonne URL)
+- [x] Mettre en place le sync vers `agent/rag/documents/zei/` (script bash `scripts/sync-zei-knowledge.sh` ou symlink)
+- [x] Étendre `agent/scripts/ingest_knowledge.py` pour parser le frontmatter et propager `source_url`, `title`, `theme_slugs` dans la metadata Qdrant
+- [x] Mettre à jour `agent/rag/documents/README.md` pour mentionner la catégorie `zei/`
+
+---
+
+## Phase 14 — Refonte CSRD avec ZEI (En Bref 5 + VSME) ✅
+
+- [x] Lire `docs/zei-knowledge/csrd/*.md` et identifier les leçons CSRD existantes à enrichir (`scripts/seed-csrd.ts`)
+- [x] Ajouter callouts "Vu par ZEI" sur 6 modules CSRD existants (`csrd-directive-fondamentaux`, `csrd-vagues-calendrier`, `csrd-seuils-criteres`, `csrd-esrs-architecture`, `csrd-double-materialite-concept`, `csrd-risques-reputation-finance`) **et** créer un nouveau sous-thème **`csrd-vsme-omnibus`** avec 3 modules dédiés (Omnibus / Value Chain Cap, VSME Basic / Complémentaire, Mid Cap / VSME+)
+- [x] Mettre à jour les blocs `sources` avec les URLs publiques `source_url` du frontmatter ZEI (12 ajouts d'entrées Hubspot CDN dans les leçons enrichies + nouveaux modules)
+- [x] Ajouter 1-2 questions MCQ par leçon enrichie, basées sur le contenu ZEI (6 MCQ ZEI sur modules existants + 24 MCQ sur nouveaux modules VSME ; ≈ 30 MCQ traçables ZEI au total)
+- [x] Exécuter `npx tsx scripts/seed-csrd.ts --reset` (7 sous-thèmes + 15 modules insérés sans erreur)
+- [x] Test E2E `/learn/csrd` — page thème servie 200 OK avec les 7 sous-thèmes (vérifié via `pnpm dev` + parcours module enrichi avec callout / source link / MCQ ZEI)
+- [x] Phase 14 complétée localement (diff prêt pour relecture utilisateur — commit déclenché manuellement par l'utilisateur)
+
+---
+
+## Phase 15 — Refonte ESG avec ZEI (Guide + Checklist Collecte)
+
+- [x] Lire `docs/zei-knowledge/esg-collecte/*.md`
+- [x] Enrichir `scripts/seed-esg.ts` (callouts + sources + MCQ ZEI) sur 6 modules existants (Notation, PME vs GE, Investissement durable, Pilier G) + nouveau sous-thème `esg-collecte-pilotage` (3 modules dédiés à la collecte ESG : audit dette technique, gouvernance triptyque, checklist post-collecte)
+- [x] Exécuter `npx tsx scripts/seed-esg.ts --reset` (7 sous-thèmes + 15 modules insérés sans erreur)
+- [x] Test E2E `/learn/esg` — pages servies 200 OK ; vérifié en base : 12 callouts "Vu par ZEI" sur 9 modules, 12 blocs `sources` Hubspot CDN, 29 MCQ ZEI traçables
+
+---
+
+## Phase 16 — Refonte ZEI & RSE (tous les guides Zei + Plaquette + Portalp)
+
+> Thème le plus impacté : refonte profonde, pas seulement des callouts.
+
+- [x] Lire l'ensemble de `docs/zei-knowledge/` (tous les docs sont pertinents pour ce thème)
+- [x] Refondre `scripts/seed-zei-rse.ts` :
+  - Mission/valeurs alignées sur la Plaquette synthétique 2026
+  - Cas pratiques basés sur la Proposition Portalp
+  - Méthodologie collecte ESG basée sur le Guide
+  - VSME et CSRD vus par ZEI (En Bref 5 + VSME)
+- [x] Mettre à jour les blocs `sources` avec les URLs publiques
+- [x] Exécuter `npx tsx scripts/seed-zei-rse.ts --reset`
+- [ ] Test E2E `/learn/zei-rse` (badges `theme_zei-rse_complete` + `zei_ambassador`)
+
+---
+
+## Phase 17 — Refonte Obligations 2025-2026 (VSME)
+
+- [x] Lire `docs/zei-knowledge/csrd/vsme-langage-commun.md`
+- [x] Enrichir `scripts/seed-obligations-2025-2026.ts` avec une section/module dédiée VSME
+- [x] Exécuter `--reset`
+- [x] Test E2E `/learn/obligations-2025-2026`
+
+---
+
+## Phase 18 — Refonte RSE & Marketing (RSE de performance + Portalp)
+
+- [x] Lire `docs/zei-knowledge/rse-performance/*.md` et la Proposition Portalp pour le sous-thème "appels d'offres / cas client"
+- [x] Enrichir `scripts/seed-rse-marketing.ts` (callouts + cas Portalp + sources)
+- [x] Exécuter `--reset`
+- [x] Test E2E `/learn/rse-marketing`
+
+---
+
+## Phase 19 — Refresh transversal RSE
+
+- [x] Lire `docs/zei-knowledge/rse-performance/*.md` (recoupe partiellement avec Phase 18)
+- [x] Ajouter callouts ZEI cross-cutting sur `scripts/seed-rse.ts` (volume modeste)
+- [x] Exécuter `--reset`
+- [x] Test E2E `/learn/rse`
+
+---
+
+## Phase 20 — Brancher le RAG dans l'agent IA runtime
+
+- [x] Vérifier que `agent/rag/documents/zei/` est bien synchronisé avec `docs/zei-knowledge/`
+- [x] Lancer `cd agent && python scripts/ingest_knowledge.py --dry-run` pour valider le chunking
+- [x] Lancer `python scripts/ingest_knowledge.py` (ingestion réelle dans Qdrant)
+- [x] Créer/étendre le tool `search_zei_docs` dans `agent/app/tools/rag/` (filtre `category in ("csrd", "esg-collecte", "rse-performance", "zei-offre")`, retour avec `source_url`)
+- [x] Mettre à jour `agent/app/agents/main_prompt.py` : instruction "cite les sources ZEI avec `source_url` au format Markdown link"
+- [x] Test : `python agent/scripts/test_tools_quick.py`
+- [x] Test conversationnel : `python agent/scripts/chat.py` sur "C'est quoi la VSME ?", "Comment ZEI aide à la collecte ESG ?"
+
+---
+
+## Phase 21 — UX cross-app (suggestions + liens sources)
+
+- [x] Page `/agent` : ajouter un chip "Boostée par les guides ZEI" + 3-5 suggestions de questions tirées de l'`INDEX.md`
+- [x] Pages module avec callouts ZEI : afficher discrètement un lien vers la source URL (ouverture dans un nouvel onglet)
+- [x] Page `/portal` : KPI optionnel "modules enrichis ZEI consultés"
+- [x] Test responsive mobile sur les nouveaux éléments
+
+---
+
+## Récapitulatif des dépendances V2
+
+- **`python-frontmatter`** (Python, Phase 13) : à ajouter à `agent/requirements.txt` pour parser le frontmatter YAML lors de l'ingestion.
+- **`pdfplumber`** ou **`marker`** (Python, Phase 13, dev only) : conversion PDF → Markdown. Pas une dépendance d'exécution.
+- Aucune nouvelle dépendance front Next.js — la V2 réutilise tous les composants existants (`LessonContent`, `QuizQuestion`, etc.).

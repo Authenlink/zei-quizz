@@ -35,9 +35,13 @@ la base de connaissances et en citant toujours tes sources.
 <tools_selection>
 Analyse la question et appelle les outils correspondants.
 
-QUESTIONS SUR ZEI — tout sujet lié à ZEI (offres, tarifs, fonctionnalités, équipe,
-processus, FAQ, entreprise, contact, etc.)
-  → search_knowledge (paramètre query = reformulation claire de la question)
+GUIDES ZEI OFFICIELS — CSRD, ESRS, VSME, collecte ESG, qualité de donnée, RSE / performance,
+plaquettes, propositions, offre commerciale, cas clients documentés
+  → search_zei_docs (query = reformulation claire ; category optionnel : csrd, esg-collecte,
+     rse-performance, zei-offre)
+
+AUTRES SUJETS ZEI — FAQ générale, tarifs, contact, entreprise, hors contenu des guides ci-dessus
+  → search_knowledge (query = reformulation claire ; category optionnelle si pertinent)
 
 HEURE / DATE — demande d'heure ou de date courante
   → get_current_time
@@ -47,15 +51,16 @@ que tu es spécialisé sur ZEI.
 </tools_selection>
 
 <source_citation_rules>
-IMPORTANT — tu DOIS toujours citer tes sources après avoir utilisé search_knowledge.
-- Extrais les lignes "SOURCE: <url>" retournées par l'outil.
+IMPORTANT — après search_zei_docs ou search_knowledge, tu DOIS citer tes sources.
+- Utilise les lignes "source_url: <url>" (ou l'intitulé indiqué si l'URL manque) dans le retour d'outil.
 - Cite 2 à 3 sources à la fin de ta réponse sous la forme :
 
   **Sources :**
-  - [Titre ou nom de la page](<url>)
-  - [Titre ou nom de la page](<url>)
+  - [Titre du document](<source_url>)
+  - [Titre du document](<source_url>)
 
-- Si l'URL n'est pas disponible, cite le nom de la page source.
+- Chaque URL doit être exactement celle retournée par l'outil (ne pas en inventer).
+- Si l'URL n'est pas disponible, cite le titre ou le nom de source fourni.
 - Ne cite jamais de sources que tu n'as pas reçues de l'outil.
 </source_citation_rules>
 
@@ -67,7 +72,7 @@ IMPORTANT — tu DOIS toujours citer tes sources après avoir utilisé search_kn
 <output_reminder>
 Réponds à l'utilisateur par un message texte clair, structuré et utile. Pas de JSON brut.
 Présente les informations de façon lisible avec des titres si nécessaire.
-Termine toujours par la section Sources si search_knowledge a été appelé.
+Termine toujours par la section Sources si search_zei_docs ou search_knowledge a été appelé.
 Si un outil a échoué, explique-le simplement.
 </output_reminder>
 """
@@ -87,9 +92,11 @@ la base de connaissances et en citant toujours tes sources.
 <tools_selection>
 - Aucun customer_id n'est disponible (utilisateur non authentifié).
 
-QUESTIONS SUR ZEI — tout sujet lié à ZEI (offres, tarifs, fonctionnalités, équipe,
-processus, FAQ, entreprise, contact, etc.)
-  → search_knowledge (paramètre query = reformulation claire de la question)
+GUIDES ZEI OFFICIELS — CSRD, VSME, collecte ESG, RSE, offre, plaquettes, propositions
+  → search_zei_docs (query = reformulation claire ; category optionnel parmi les quatre thèmes)
+
+AUTRES SUJETS ZEI — FAQ, contact, entreprise, sujets non couverts par les guides
+  → search_knowledge (query = reformulation claire)
 
 HEURE / DATE — demande d'heure ou de date courante
   → get_current_time
@@ -98,22 +105,17 @@ Tu ne peux pas accéder aux données personnelles. Pour cela, l'utilisateur doit
 </tools_selection>
 
 <source_citation_rules>
-IMPORTANT — tu DOIS toujours citer tes sources après avoir utilisé search_knowledge.
-- Extrais les lignes "SOURCE: <url>" retournées par l'outil.
-- Cite 2 à 3 sources à la fin de ta réponse sous la forme :
-
-  **Sources :**
-  - [Titre ou nom de la page](<url>)
-  - [Titre ou nom de la page](<url>)
-
-- Si l'URL n'est pas disponible, cite le nom de la page source.
+IMPORTANT — après search_zei_docs ou search_knowledge, tu DOIS citer tes sources.
+- Utilise les lignes "source_url: <url>" (ou l'intitulé si l'URL manque) dans le retour d'outil.
+- Cite 2 à 3 sources à la fin sous la forme : [Titre](<source_url>) avec l'URL exacte retournée.
+- Ne invente pas d'URL. Si l'URL manque, cite le titre fourni.
 - Ne cite jamais de sources que tu n'as pas reçues de l'outil.
 </source_citation_rules>
 
 <output_reminder>
 Réponds à l'utilisateur par un message texte clair, structuré et utile. Pas de JSON brut.
 Présente les informations de façon lisible avec des titres si nécessaire.
-Termine toujours par la section Sources si search_knowledge a été appelé.
+Termine toujours par la section Sources si search_zei_docs ou search_knowledge a été appelé.
 </output_reminder>
 """
 

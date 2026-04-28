@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+agent/.venv/
 /.pnp
 .pnp.*
 .yarn/*
@@ -40,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# zei knowledge base — extraction temporaire (PDF brut)
+/docs/zei-knowledge/.tmp/

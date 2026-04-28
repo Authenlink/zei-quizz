@@ -5,6 +5,7 @@ import { PolarAngleAxis, RadialBar, RadialBarChart } from "recharts";
 
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const chartConfig = {
   value: {
@@ -15,18 +16,25 @@ const chartConfig = {
 
 export function ProgressRing({
   globalProgressPercent,
+  className,
 }: {
   globalProgressPercent: number;
+  className?: string;
 }) {
   const pct = Math.min(100, Math.max(0, globalProgressPercent));
   const data = React.useMemo(() => [{ name: "progress", value: pct }], [pct]);
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-0">
+    <Card
+      className={cn(
+        "flex h-full min-h-0 flex-col overflow-hidden",
+        className,
+      )}
+    >
+      <CardHeader className="shrink-0 pb-0">
         <CardTitle className="text-base">Progression globale</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center pb-4 pt-2">
+      <CardContent className="flex flex-1 flex-col items-center justify-center pb-4 pt-2">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square h-[200px] max-h-[220px] w-full max-w-[220px]"

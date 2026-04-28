@@ -130,6 +130,7 @@ export function SignupForm({
   const [isLoading, setIsLoading] = useState(false);
 
   // --- Étape 2 : infos utilisateur ---
+  const [signupInviteCode, setSignupInviteCode] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -210,6 +211,7 @@ export function SignupForm({
         email,
         password,
         accountType,
+        signupInviteCode,
       };
 
       if (accountType === "business") {
@@ -261,6 +263,7 @@ export function SignupForm({
   // Validation par étape
   // ============================================================
   const validateUserInfo = (): string | null => {
+    if (!signupInviteCode.trim()) return "Le code d'accès à l'inscription est requis";
     if (!name.trim()) return "Le nom est requis";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Email invalide";
     if (password.length < 8) return "Le mot de passe doit contenir au moins 8 caractères";
@@ -410,6 +413,23 @@ export function SignupForm({
           {/* -------------------------------------------------- */}
           {step === "user-info" && (
             <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="signup-invite">Code d&apos;accès à l&apos;inscription</FieldLabel>
+                <Input
+                  id="signup-invite"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="Code fourni par l&apos;équipe"
+                  value={signupInviteCode}
+                  onChange={(e) => setSignupInviteCode(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+                <FieldDescription>
+                  Nécessaire pour créer un compte sur cette instance.
+                </FieldDescription>
+              </Field>
+
               <Field>
                 <FieldLabel htmlFor="name">Nom complet</FieldLabel>
                 <Input

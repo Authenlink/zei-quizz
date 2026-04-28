@@ -1,9 +1,21 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { users, workspaces, workspaceMembers } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateRandomGradient } from "@/lib/gradient-generator";
+
+const DEFAULT_SIGNUP_INVITE = "IEZ";
+
+function isSignupInviteValid(provided: string | undefined): boolean {
+  const expected =
+    process.env.SIGNUP_INVITE_CODE?.trim() || DEFAULT_SIGNUP_INVITE;
+  const a = Buffer.from(provided ?? "", "utf8");
+  const b = Buffer.from(expected, "utf8");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 // ============================================================
 // Helpers de validation
@@ -25,25 +37,50 @@ function toSlug(name: string): string {
     .slice(0, 50);
 }
 
+type WorkspaceInput = {
+  action: string;
+  slug: string;
+  password: string;
+  name?: string;
+};
+
 // ============================================================
 // POST /api/auth/register
 //
+// Tous les comptes : signupInviteCode requis (défaut serveur = IEZ, surcharge via SIGNUP_INVITE_CODE).
+//
 // Body pour un compte personnel :
-//   { name, email, password, accountType: "user" }
+//   { name, email, password, signupInviteCode, accountType: "user" }
 //
 // Body pour un compte entreprise — créer un workspace :
-//   { name, email, password, accountType: "business",
+//   { name, email, password, signupInviteCode, accountType: "business",
 //     workspace: { action: "create", name: "Acme Corp", slug: "acme-corp", password: "..." } }
 //
 // Body pour un compte entreprise — rejoindre un workspace :
-//   { name, email, password, accountType: "business",
+//   { name, email, password, signupInviteCode, accountType: "business",
 //     workspace: { action: "join", slug: "acme-corp", password: "..." } }
 // ============================================================
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, password, name, accountType = "user", workspace } = body;
+    const body = (await request.json()) as Record<string, unknown>;
+    const signupInviteCode =
+      typeof body.signupInviteCode === "string" ? body.signupInviteCode : undefined;
+    if (!isSignupInviteValid(signupInviteCode)) {
+      return NextResponse.json(
+        { error: "Code d'accès à l'inscription incorrect ou manquant" },
+        { status: 403 }
+      );
+    }
+
+    const email = typeof body.email === "string" ? body.email : "";
+    const password = typeof body.password === "string" ? body.password : "";
+    const name = typeof body.name === "string" ? body.name : "";
+    const accountType =
+      "accountType" in body && body.accountType !== undefined
+        ? body.accountType
+        : "user";
+    const workspace = body.workspace as WorkspaceInput | undefined;
 
     // --- Validations de base ---
     if (!email || !password || !name) {
@@ -143,7 +180,7 @@ export async function POST(request: NextRequest) {
           name,
           password: hashedPassword,
           accountType,
-          role: "staff",
+          role: "user",
           backgroundType: "gradient",
           backgroundGradient: userGradient,
         })
@@ -164,16 +201,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!workspace) {
+      return NextResponse.json(
+        { error: "Les informations du workspace sont requises pour un compte entreprise" },
+        { status: 400 }
+      );
+    }
+    const ws = workspace;
+
     // ============================================================
     // Compte entreprise — création atomique avec workspace
     // ============================================================
     return await db.transaction(async (tx) => {
-      if (workspace.action === "create") {
+      if (ws.action === "create") {
         // Vérifier que le slug n'est pas déjà pris
         const existingWorkspace = await tx
           .select({ id: workspaces.id })
           .from(workspaces)
-          .where(eq(workspaces.slug, workspace.slug))
+          .where(eq(workspaces.slug, ws.slug))
           .limit(1);
 
         if (existingWorkspace.length > 0) {
@@ -184,14 +229,14 @@ export async function POST(request: NextRequest) {
         }
 
         // Hacher le mot de passe du workspace
-        const wsPasswordHash = await bcrypt.hash(workspace.password, 10);
+        const wsPasswordHash = await bcrypt.hash(ws.password, 10);
 
         // Créer le workspace (ownerId mis à jour après création de l'user)
         const [createdWorkspace] = await tx
           .insert(workspaces)
           .values({
-            name: workspace.name.trim(),
-            slug: workspace.slug,
+            name: ws.name!.trim(),
+            slug: ws.slug,
             passwordHash: wsPasswordHash,
             ownerId: 0, // placeholder — mis à jour juste après
           })
@@ -205,7 +250,7 @@ export async function POST(request: NextRequest) {
             name,
             password: hashedPassword,
             accountType,
-            role: "staff",
+            role: "user",
             workspaceId: createdWorkspace.id,
             backgroundType: "gradient",
             backgroundGradient: userGradient,
@@ -245,7 +290,7 @@ export async function POST(request: NextRequest) {
       const [existingWorkspace] = await tx
         .select()
         .from(workspaces)
-        .where(eq(workspaces.slug, workspace.slug))
+        .where(eq(workspaces.slug, ws.slug))
         .limit(1);
 
       if (!existingWorkspace) {
@@ -256,7 +301,7 @@ export async function POST(request: NextRequest) {
       }
 
       const isWsPasswordValid = await bcrypt.compare(
-        workspace.password,
+        ws.password,
         existingWorkspace.passwordHash
       );
 
@@ -275,7 +320,7 @@ export async function POST(request: NextRequest) {
           name,
           password: hashedPassword,
           accountType,
-          role: "staff",
+          role: "user",
           workspaceId: existingWorkspace.id,
           backgroundType: "gradient",
           backgroundGradient: userGradient,
