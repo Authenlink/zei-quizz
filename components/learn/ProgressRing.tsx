@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const chartConfig = {
   value: {
     label: "Progression",
-    color: "hsl(var(--chart-1))",
+    color: "var(--primary)",
   },
 } satisfies ChartConfig;
 

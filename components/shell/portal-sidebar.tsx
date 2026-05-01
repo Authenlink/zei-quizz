@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   BookOpen,
   Trophy,
+  Library,
   MessageSquare,
   User,
 } from "lucide-react";
@@ -54,6 +55,11 @@ const portalNavItems = [
     title: "Mes badges",
     url: "/learn/achievements",
     icon: Trophy,
+  },
+  {
+    title: "Ressources",
+    url: "/ressources",
+    icon: Library,
   },
   {
     title: "Assistant IA",
